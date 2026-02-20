@@ -42,10 +42,10 @@ O **Libera.ai** é um ecossistema IoT completo para **controle de acesso físico
 
 ### 🔄 Fluxo de Funcionamento
 
-1. **Sensor IoT** detecta código de acesso
-2. **API Java** valida o código e registra entrada/saída
-3. **Orchestrator Node.js** recebe comando de liberação
-4. **ESP32** aciona o mecanismo físico de abertura
+1. **Usuário** envia código de acesso para a API
+2. **API Java** valida se já entrou e salva a saída no banco
+3. **Java** notifica o **Node.js** sobre a saída
+4. **Node.js** comanda o **ESP32** para abrir a catraca
 
 ---
 
@@ -87,23 +87,23 @@ O Libera.ai foi construído seguindo os princípios de **Clean Architecture** e 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sensor as 🔍 Sensor IoT
-    participant Java as ☕ Java API<br/>(Validation Layer)
+    participant User as 👤 Usuário
+    participant Java as ☕ Java API<br/>(Validação)
     participant DB as 🗄️ MySQL
     participant Node as 🟢 Node.js<br/>(Orchestrator)
-    participant ESP as 📟 ESP32<br/>(Firmware)
+    participant ESP as 📟 ESP32<br/>(Catraca)
 
-    Sensor->>Java: POST /access/exit {code}
-    Java->>Java: Validar código de acesso
-    Java->>DB: Buscar registro ativo
+    User->>Java: POST /access/exit {code}
+    Java->>DB: Buscar registro com entrada ativa
     DB-->>Java: Access Entity
-    Java->>DB: Atualizar exitTime
-    Java->>Node: POST {code} (ExitAccessEvent)
-    Node->>ESP: Comando de liberação
+    Java->>Java: Validar se usuário já entrou
+    Java->>DB: Salvar horário de saída
+    Java->>Node: Notificar saída (ExitAccessEvent)
+    Note over Java,Node: Java apenas notifica o Node
+    Node->>ESP: Comando: Abrir catraca
+    Note over Node,ESP: Node é responsável pelo hardware
     ESP->>ESP: Acionar mecanismo físico
-    ESP-->>Node: ACK
-    Node-->>Java: 200 OK
-    Java-->>Sensor: AccessExitResponse
+    Java-->>User: AccessExitResponse
 ```
 
 ### Arquitetura Hexagonal (Ports & Adapters)
