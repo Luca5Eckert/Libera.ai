@@ -1,4 +1,4 @@
-package br.centroweg.libera_ai.module.payment.domain.use_case;
+package br.centroweg.libera_ai.module.payment.controller.use_case;
 
 import br.centroweg.libera_ai.module.access.domain.exception.AccessDomainException;
 import br.centroweg.libera_ai.module.access.domain.model.Access;

@@ -46,7 +46,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
             String generatedPaymentId = String.valueOf(payment.getId());
             String qrCode = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
 
-            return new PaymentInfo(generatedPaymentId, qrCode);
+            return new PaymentInfo(generatedPaymentId, qrCode, amount);
 
         } catch (MPException | MPApiException e) {
             throw new PaymentIntegrationException("Failed to generate Pix payment with Mercado Pago", e);
