@@ -1,11 +1,11 @@
-package br.centroweg.libera_ai.application.use_case;
+package br.centroweg.libera_ai.module.access.application.use_case;
 
-import br.centroweg.libera_ai.application.dto.AccessExitRequest;
-import br.centroweg.libera_ai.domain.event.ExitAccessEvent;
-import br.centroweg.libera_ai.domain.exception.AccessCodeNotValidException;
-import br.centroweg.libera_ai.domain.model.Access;
-import br.centroweg.libera_ai.domain.port.AccessRepository;
-import br.centroweg.libera_ai.domain.port.ExitEventProducer;
+import br.centroweg.libera_ai.module.access.application.dto.AccessExitRequest;
+import br.centroweg.libera_ai.module.access.domain.event.ExitAccessEvent;
+import br.centroweg.libera_ai.module.access.domain.exception.AccessCodeNotValidException;
+import br.centroweg.libera_ai.module.access.domain.model.Access;
+import br.centroweg.libera_ai.module.access.domain.port.AccessRepository;
+import br.centroweg.libera_ai.module.access.domain.port.ExitEventProducer;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

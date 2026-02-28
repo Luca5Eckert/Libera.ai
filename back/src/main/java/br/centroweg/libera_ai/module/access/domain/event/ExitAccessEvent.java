@@ -1,4 +1,4 @@
-package br.centroweg.libera_ai.domain.event;
+package br.centroweg.libera_ai.module.access.domain.event;
 
 public record ExitAccessEvent(
         int code

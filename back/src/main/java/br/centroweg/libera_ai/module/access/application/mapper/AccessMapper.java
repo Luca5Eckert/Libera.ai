@@ -1,7 +1,7 @@
-package br.centroweg.libera_ai.application.mapper;
+package br.centroweg.libera_ai.module.access.application.mapper;
 
-import br.centroweg.libera_ai.application.dto.AccessExitResponse;
-import br.centroweg.libera_ai.domain.model.Access;
+import br.centroweg.libera_ai.module.access.application.dto.AccessExitResponse;
+import br.centroweg.libera_ai.module.access.domain.model.Access;
 import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;

@@ -1,6 +1,6 @@
-package br.centroweg.libera_ai.domain.port;
+package br.centroweg.libera_ai.module.access.domain.port;
 
-import br.centroweg.libera_ai.domain.model.Access;
+import br.centroweg.libera_ai.module.access.domain.model.Access;
 
 import java.util.Optional;
 

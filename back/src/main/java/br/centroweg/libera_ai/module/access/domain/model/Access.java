@@ -1,4 +1,4 @@
-package br.centroweg.libera_ai.domain.model;
+package br.centroweg.libera_ai.module.access.domain.model;
 
 import java.time.LocalDateTime;
 

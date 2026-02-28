@@ -1,6 +1,6 @@
 package br.centroweg.libera_ai.infrastructure.persistence.entity;
 
-import br.centroweg.libera_ai.domain.model.Access;
+import br.centroweg.libera_ai.module.access.domain.model.Access;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Generated;

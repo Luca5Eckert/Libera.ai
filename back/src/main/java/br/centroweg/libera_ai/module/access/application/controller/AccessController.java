@@ -1,10 +1,9 @@
-package br.centroweg.libera_ai.application.controller;
+package br.centroweg.libera_ai.module.access.application.controller;
 
-import br.centroweg.libera_ai.application.dto.AccessExitRequest;
-import br.centroweg.libera_ai.application.dto.AccessExitResponse;
-import br.centroweg.libera_ai.application.mapper.AccessMapper;
-import br.centroweg.libera_ai.application.use_case.AccessExitUseCase;
-import br.centroweg.libera_ai.domain.model.Access;
+import br.centroweg.libera_ai.module.access.application.dto.AccessExitRequest;
+import br.centroweg.libera_ai.module.access.application.dto.AccessExitResponse;
+import br.centroweg.libera_ai.module.access.application.mapper.AccessMapper;
+import br.centroweg.libera_ai.module.access.application.use_case.AccessExitUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
