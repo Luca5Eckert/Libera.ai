@@ -8,7 +8,11 @@ import org.springframework.stereotype.Component;
 public class PaymentMapper {
 
     public PaymentResponse toPaymentResponse(PaymentInfo paymentInfo) {
-        return new PaymentResponse(paymentInfo.amount(), paymentInfo.qrCode());
+        return new PaymentResponse(
+                paymentInfo.amount(),
+                paymentInfo.qrCode(),
+                paymentInfo.generatedPaymentId()
+        );
     }
 
 }
