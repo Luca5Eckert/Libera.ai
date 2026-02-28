@@ -1,7 +1,7 @@
 package br.centroweg.libera_ai.infrastructure.persistence.repository;
 
-import br.centroweg.libera_ai.domain.model.Access;
-import br.centroweg.libera_ai.domain.port.AccessRepository;
+import br.centroweg.libera_ai.module.access.domain.model.Access;
+import br.centroweg.libera_ai.module.access.domain.port.AccessRepository;
 import br.centroweg.libera_ai.infrastructure.persistence.entity.AccessEntity;
 import org.springframework.stereotype.Repository;
 

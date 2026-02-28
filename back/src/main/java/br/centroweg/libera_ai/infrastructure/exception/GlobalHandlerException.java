@@ -1,6 +1,6 @@
 package br.centroweg.libera_ai.infrastructure.exception;
 
-import br.centroweg.libera_ai.domain.exception.AccessDomainException;
+import br.centroweg.libera_ai.module.access.domain.exception.AccessDomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

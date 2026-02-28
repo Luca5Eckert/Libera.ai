@@ -1,7 +1,7 @@
 package br.centroweg.libera_ai.infrastructure.producer;
 
-import br.centroweg.libera_ai.domain.event.ExitAccessEvent;
-import br.centroweg.libera_ai.domain.port.ExitEventProducer;
+import br.centroweg.libera_ai.module.access.domain.event.ExitAccessEvent;
+import br.centroweg.libera_ai.module.access.domain.port.ExitEventProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
