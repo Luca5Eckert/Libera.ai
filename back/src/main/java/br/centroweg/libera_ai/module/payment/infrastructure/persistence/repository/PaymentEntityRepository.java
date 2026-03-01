@@ -28,4 +28,11 @@ public class PaymentEntityRepository implements PaymentRepository {
 
         return paymentEntity.map(PaymentEntity::toDomain);
     }
+
+    @Override
+    public Optional<Payment> findByAccessCode(int code) {
+        var paymentEntity = paymentEntityRepositoryJpa.findByAccessEntityCode(code);
+
+        return paymentEntity.map(PaymentEntity::toDomain);
+    }
 }
