@@ -34,37 +34,7 @@
 
 ## Problema
 
-A gestão de estacionamentos comerciais enfrenta diversos desafios operacionais que impactam tanto a eficiência do negócio quanto a experiência do usuário:
-
-### Desafios Operacionais Identificados
-
-**1. Controle Manual e Ineficiente**
-- Processos manuais de registro de entrada e saída são lentos e propensos a erros humanos
-- Dificuldade em rastrear veículos em tempo real
-- Falta de histórico confiável para auditoria e análise de dados
-
-**2. Complexidade no Gerenciamento de Pagamentos**
-- Cobrança manual de tarifas sujeita a erros de cálculo
-- Necessidade de operadores para processar pagamentos
-- Dificuldade em integrar métodos de pagamento modernos (PIX, cartões)
-- Ausência de comprovantes digitais e rastreabilidade financeira
-
-**3. Falta de Integração Tecnológica**
-- Sistemas legados sem integração com dispositivos IoT
-- Ausência de automação em cancelas e catracas
-- Impossibilidade de monitoramento remoto
-- Dados fragmentados em diferentes sistemas
-
-**4. Experiência do Usuário Deficiente**
-- Filas longas para pagamento na saída
-- Processo de saída demorado
-- Falta de transparência no cálculo de tarifas
-- Métodos de pagamento limitados
-
-**5. Escalabilidade Limitada**
-- Sistemas monolíticos difíceis de manter e evoluir
-- Impossibilidade de adicionar novas funcionalidades sem reescrever código existente
-- Dificuldade em integrar novos pontos de acesso ou formas de pagamento
+A gestão de estacionamentos comerciais enfrenta desafios como processos manuais lentos e propensos a erros, dificuldade em integrar métodos de pagamento modernos (PIX), falta de automação em cancelas, e sistemas legados difíceis de escalar. Isso resulta em filas longas, experiência ruim para o usuário e custos operacionais elevados.
 
 ---
 
@@ -105,21 +75,7 @@ O **Libera.ai** é uma plataforma completa de gestão de estacionamentos que aut
 
 ## Objetivos do Projeto
 
-### Objetivos de Negócio
-
-1. **Automatizar Operações**: Eliminar processos manuais suscetíveis a erros, reduzindo custos operacionais e aumentando a confiabilidade
-2. **Melhorar Experiência do Usuário**: Proporcionar processo de saída rápido e sem filas através de pagamento digital instantâneo
-3. **Aumentar Receita**: Garantir cobrança precisa de todas as permanências através de rastreamento automatizado
-4. **Facilitar Auditoria**: Manter histórico completo de todas as transações para análise e conformidade
-
-### Objetivos Técnicos
-
-1. **Modularidade**: Estruturar o sistema em módulos independentes (bounded contexts) que podem evoluir separadamente
-2. **Escalabilidade**: Utilizar arquitetura que permita adicionar novos pontos de acesso, formas de pagamento, e funcionalidades sem refatoração massiva
-3. **Manutenibilidade**: Aplicar padrões de Clean Architecture e Domain-Driven Design (DDD) para código limpo e testável
-4. **Performance**: Utilizar programação reativa (WebFlux) e virtual threads do Java 21 para alta performance
-5. **Resiliência**: Implementar comunicação confiável com sistemas externos (IoT, Mercado Pago) com tratamento de erros robusto
-6. **Integração**: Criar APIs REST bem definidas para fácil integração com sistemas externos e futuros frontends
+O Libera.ai visa automatizar operações de estacionamento, melhorar a experiência do usuário com pagamento digital rápido, garantir rastreabilidade completa das transações, e criar uma arquitetura modular e escalável usando Clean Architecture e DDD.
 
 ---
 
@@ -193,29 +149,12 @@ flowchart TB
 
 ### Descrição das Camadas
 
-**1. Presentation Layer (Camada de Apresentação)**
-- **Responsabilidade**: Expor endpoints REST e mapear DTOs para modelos de domínio
-- **Componentes**: Controllers, DTOs, Mappers
-- **Padrão**: Isolamento completo da lógica de negócio, apenas coordenação de requisições
-- **Tecnologia**: Spring WebFlux para programação reativa
+O sistema é dividido em 4 camadas principais seguindo Clean Architecture:
 
-**2. Application Layer (Camada de Aplicação)**
-- **Responsabilidade**: Orquestrar casos de uso e lógica de negócio
-- **Componentes**: Use Cases (serviços de aplicação)
-- **Padrão**: Use Case por operação de negócio (RegisterEntry, ProcessPayment, etc.)
-- **Benefício**: Lógica de negócio testável e reutilizável
-
-**3. Domain Layer (Camada de Domínio)**
-- **Responsabilidade**: Conter regras de negócio e entidades do domínio
-- **Componentes**: Entidades de domínio, Value Objects, Ports (interfaces)
-- **Padrão**: Independente de frameworks, contém apenas regras de negócio puras
-- **Benefício**: Núcleo da aplicação protegido de mudanças em infraestrutura
-
-**4. Infrastructure Layer (Camada de Infraestrutura)**
-- **Responsabilidade**: Implementar detalhes técnicos e integrações externas
-- **Componentes**: Repositórios JPA, Clientes HTTP, Adaptadores
-- **Padrão**: Adapters para isolar dependências externas
-- **Tecnologia**: Spring Data JPA, RestTemplate/WebClient
+- **Presentation**: Controllers REST e DTOs para comunicação com clientes
+- **Application**: Use Cases que orquestram a lógica de negócio
+- **Domain**: Entidades e regras de negócio puras, independentes de frameworks
+- **Infrastructure**: Implementações técnicas (JPA, Mercado Pago, IoT)
 
 ---
 
@@ -290,151 +229,35 @@ sequenceDiagram
 
 ### Detalhamento das Fases
 
-**FASE 1: Entrada no Estacionamento**
-1. Sensor ESP32 detecta presença do veículo
-2. Sinal é enviado ao Node.js orchestrator
-3. Orchestrator chama API REST (`POST /access/entry`)
-4. Sistema gera código único e registra horário de entrada no banco
-5. Código é retornado e catraca é acionada para abertura
-6. Ticket com código é fornecido ao usuário
+**FASE 1: Entrada**  
+Sensor ESP32 detecta veículo → Node.js orchestrator chama API → Sistema gera código único → Catraca abre
 
-**FASE 2: Permanência**
-- Veículo permanece estacionado
-- Tempo de permanência é calculado automaticamente quando solicitado
-- Nenhuma interação do sistema necessária nesta fase
+**FASE 2: Permanência**  
+Veículo estacionado, tempo sendo contabilizado
 
-**FASE 3: Preparação para Saída**
-1. Usuário acessa terminal web de saída
-2. Informa código do ticket
-3. Sistema busca registro de entrada no banco de dados
-4. Calcula tempo de permanência (horário atual - horário de entrada)
-5. Aplica tarifa configurada (ex: R$ 10,00/hora)
-6. Cria pagamento via API do Mercado Pago
-7. Recebe QR Code PIX dinâmico
-8. Exibe QR Code e valor para o usuário
+**FASE 3: Preparação para Saída**  
+Usuário informa código no terminal web → Sistema calcula tempo e valor → Gera QR Code PIX via Mercado Pago
 
-**FASE 4: Pagamento**
-1. Usuário escaneia QR Code com aplicativo bancário
-2. Confirma pagamento PIX
-3. Mercado Pago processa pagamento
-4. Webhook notifica backend sobre mudança de status
-5. Sistema atualiza status do pagamento no banco de dados
+**FASE 4: Pagamento**  
+Usuário paga via PIX → Webhook notifica backend → Status atualizado no banco
 
-**FASE 5: Monitoramento em Tempo Real**
-1. Interface web mantém conexão SSE (Server-Sent Events) com backend
-2. Backend consulta status do pagamento periodicamente
-3. Quando status muda para APPROVED, evento é enviado ao frontend
-4. Interface atualiza visualmente o status e libera botão de saída
+**FASE 5: Monitoramento**  
+Interface mantém conexão SSE → Backend envia eventos de atualização → Interface libera saída quando aprovado
 
-**FASE 6: Liberação de Saída**
-1. Usuário clica em botão de saída após pagamento aprovado
-2. Sistema valida se pagamento foi realmente aprovado
-3. Registra horário de saída no banco de dados
-4. Envia comando ao Node.js orchestrator
-5. Orchestrator aciona ESP32 para abrir catraca
-6. Veículo é liberado para saída
-7. Registro é marcado como completo
+**FASE 6: Liberação**  
+Sistema valida pagamento → Envia comando para abrir catraca → Veículo sai
 
 ---
 
 ## Abordagem Técnica
 
-### Decisões Arquiteturais
+O sistema utiliza **Clean Architecture** e **DDD** para manter o código modular e escalável. Os módulos Access e Payment são bounded contexts independentes, permitindo evolução separada. 
 
-**1. Clean Architecture + DDD**
-
-**Motivação**: Sistemas de estacionamento precisam evoluir constantemente (novos métodos de pagamento, integração com novos dispositivos IoT, novos tipos de tarifação). Uma arquitetura monolítica ou acoplada dificulta essas evoluções.
-
-**Implementação**:
-- **Bounded Contexts**: Separação clara entre domínio de acesso físico (Access) e domínio de pagamentos (Payment)
-- **Hexagonal Architecture**: Portas e adaptadores para isolar lógica de negócio de detalhes de infraestrutura
-- **Camadas bem definidas**: Presentation → Application → Domain → Infrastructure
-- **Dependency Inversion**: Camadas superiores não dependem de camadas inferiores; dependem de abstrações (interfaces/ports)
-
-**Benefícios**:
-- Fácil substituição de Mercado Pago por outro gateway de pagamento
-- Possibilidade de adicionar novos tipos de dispositivos IoT sem alterar lógica de negócio
-- Testes unitários da lógica de negócio sem dependências externas
-- Cada módulo pode evoluir independentemente
-
-**2. Programação Reativa com WebFlux**
-
-**Motivação**: Operações críticas como monitoramento de pagamento requerem resposta em tempo real sem bloquear threads.
-
-**Implementação**:
-- Spring WebFlux para endpoints não-bloqueantes
-- Server-Sent Events (SSE) para push de atualizações de status de pagamento
-- Mono e Flux para operações assíncronas
-
-**Benefícios**:
-- Alta eficiência no uso de recursos (threads)
-- Melhor experiência do usuário com atualizações em tempo real
-- Capacidade de lidar com múltiplas conexões simultâneas
-
-**3. Java 21 Virtual Threads**
-
-**Motivação**: Combinar os benefícios de código síncrono (fácil de ler e manter) com performance de código assíncrono.
-
-**Implementação**:
-- Virtual threads para operações I/O intensivas (chamadas a banco de dados, APIs externas)
-- Simplifica código comparado a callbacks ou programação reativa pura
-
-**Benefícios**:
-- Código mais simples e legível
-- Performance superior em operações I/O bound
-- Melhor aproveitamento de recursos do sistema
-
-**4. Separação de Presentation Layer**
-
-**Motivação**: Evitar acoplamento entre API REST e lógica de negócio, facilitando evolução independente e suporte a múltiplos clientes.
-
-**Implementação**:
-- Controllers exclusivamente responsáveis por coordenar requisições HTTP
-- DTOs específicos para API, separados de entidades de domínio
-- Mappers para conversão entre DTOs e modelos de domínio
-- Validações de entrada na camada de apresentação
-
-**Benefícios**:
-- API pode evoluir sem afetar lógica de negócio
-- Possibilidade de criar APIs alternativas (GraphQL, gRPC) usando mesma lógica
-- Testes de API isolados de testes de negócio
-- Segurança: entidades de domínio nunca expostas diretamente
-
-**5. Integração via Adapters**
-
-**Motivação**: Sistemas externos (Mercado Pago, ESP32) podem mudar ou serem substituídos.
-
-**Implementação**:
-- Interfaces (ports) definem contratos na camada de domínio
-- Adaptadores implementam interfaces usando bibliotecas específicas
-- Configuração via injeção de dependência do Spring
-
-**Benefícios**:
-- Fácil substituição de implementações
-- Possibilidade de mocks para testes
-- Isolamento de mudanças em APIs externas
-
-### Padrões de Design Utilizados
-
-**1. Repository Pattern**
-- Abstração do acesso a dados
-- Permite trocar implementação de persistência
-
-**2. Use Case Pattern**
-- Cada operação de negócio é uma classe separada
-- Facilita testes e manutenção
-
-**3. DTO Pattern**
-- Separação entre modelos de API e modelos de domínio
-- Controle sobre dados expostos
-
-**4. Adapter Pattern**
-- Isolamento de dependências externas
-- Facilitação de substituição de implementações
-
-**5. Event-Driven Pattern**
-- Server-Sent Events para comunicação em tempo real
-- Webhooks para receber notificações do Mercado Pago
+Principais decisões técnicas:
+- **WebFlux + Virtual Threads**: Programação reativa para alta performance em operações I/O
+- **Server-Sent Events (SSE)**: Atualizações em tempo real do status de pagamento
+- **Hexagonal Architecture**: Portas e adaptadores isolam lógica de negócio das implementações técnicas
+- **Separação em Camadas**: Presentation, Application, Domain e Infrastructure bem definidas
 
 ---
 

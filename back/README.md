@@ -1,8 +1,8 @@
 <div align="center">
   
-# 🔐 Libera.ai
+# Libera.ai - Backend
 
-### Plataforma Inteligente de Gestão de Estacionamentos com Pagamento Automático
+### API REST para Gestão de Estacionamentos
 
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -10,259 +10,112 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Mercado Pago](https://img.shields.io/badge/Mercado%20Pago-PIX-009EE3?style=for-the-badge&logo=mercadopago&logoColor=white)](https://www.mercadopago.com.br/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-GPL%20v2-blue?style=for-the-badge)](LICENSE)
 
 </div>
 
 ---
 
-## 📋 Índice
+## Sobre o Backend
 
-- [Conceito do Projeto](#-conceito-do-projeto)
-- [Funcionalidades](#-funcionalidades)
-- [Fluxo Completo do Sistema](#-fluxo-completo-do-sistema)
-- [Tech Stack](#-tech-stack)
-- [Arquitetura](#-arquitetura)
-- [Estrutura Modular](#-estrutura-modular)
-- [Camada de Apresentação (Presentation Layer)](#-camada-de-apresentação-presentation-layer)
-- [Sistema de Pagamentos](#-sistema-de-pagamentos)
-- [Setup & Running](#-setup--running)
-- [API Endpoints](#-api-endpoints)
-- [Detalhes de Engenharia](#-detalhes-de-engenharia)
+Backend da plataforma Libera.ai desenvolvido em Java 21 com Spring Boot. Fornece APIs REST para controle de acesso de veículos e processamento de pagamentos via PIX, utilizando Clean Architecture e DDD para modularidade e escalabilidade.
+
+### Principais Características
+
+- **Arquitetura Modular**: Bounded Contexts separados (Access e Payment)
+- **Clean Architecture**: Separação clara em camadas (Presentation, Application, Domain, Infrastructure)
+- **Programação Reativa**: Spring WebFlux com Server-Sent Events para atualizações em tempo real
+- **Java 21**: Virtual Threads para alta performance em operações I/O
+- **Integração PIX**: Mercado Pago SDK para pagamentos instantâneos
 
 ---
 
-## 💡 Conceito do Projeto
+## Índice
 
-O **Libera.ai** é uma plataforma completa e moderna de gestão de estacionamentos inteligentes que combina **controle de acesso físico**, **processamento de pagamentos automatizado** e **interface web responsiva**, oferecendo uma solução end-to-end para operação de estacionamentos comerciais.
-
-### 🎯 Problema Resolvido
-
-A solução Libera.ai elimina as principais dores operacionais de estacionamentos tradicionais:
-
-| Desafio | Solução Libera.ai |
-|---------|-------------------|
-| **Controle manual de entrada/saída** | Validação automatizada via sensores IoT e API REST |
-| **Gestão de pagamentos complexa** | Integração nativa com Mercado Pago (PIX) e cálculo automático |
-| **Falta de rastreabilidade** | Registro completo com timestamps e histórico em banco de dados |
-| **Processos lentos e propensos a erro** | Fluxo digital otimizado do check-in ao pagamento |
-| **Dificuldade de escalabilidade** | Arquitetura modular baseada em Clean Architecture e DDD |
-| **Experiência do usuário deficiente** | Interface web moderna e responsiva com feedback em tempo real |
-
-### 🌟 Diferenciais Técnicos
-
-- **Arquitetura Modular**: Organização em bounded contexts (Access e Payment) seguindo DDD
-- **Camada de Apresentação Desacoplada**: Presentation Layer isolada para facilitar evolução da API
-- **Pagamentos em Tempo Real**: Geração de QR Code PIX e monitoramento via Server-Sent Events (SSE)
-- **Alta Performance**: Uso de WebFlux para operações reativas e Java 21 Virtual Threads
-- **Integração IoT Robusta**: Comunicação confiável com ESP32 via Node.js orchestrator
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Estrutura Modular](#estrutura-modular)
+- [API Endpoints](#api-endpoints)
+- [Configuração e Execução](#configuração-e-execução)
+- [Detalhes de Implementação](#detalhes-de-implementação)
 
 ---
 
-## 🚀 Funcionalidades
+## Tecnologias
 
-### Módulo de Controle de Acesso
-- ✅ Registro automático de entrada de veículos
-- ✅ Validação de saída com verificação de entrada prévia
-- ✅ Rastreamento completo de horários (entrada/saída)
-- ✅ Integração com catracas/cancelas via ESP32
-- ✅ Interface web para operação de terminais de saída
-
-### Módulo de Pagamentos
-- 💳 **Geração de pagamentos PIX via Mercado Pago**
-- 📊 **Cálculo automático baseado em tempo de permanência** (R$ 10,00/hora)
-- 🔄 **Monitoramento de status em tempo real** (Server-Sent Events)
-- 📱 **QR Code dinâmico** para pagamento mobile
-- ✅ **Validação de pagamento** antes da liberação de saída
-
-### Camada de Apresentação
-- 🎨 Interface web responsiva com TailwindCSS
-- ⚡ Feedback visual em tempo real
-- 📱 Design mobile-first
-- 🔔 Notificações de erro e sucesso
-- 🕐 Cálculo e exibição de tempo de permanência
-
----
-
-## 🔄 Fluxo Completo do Sistema
-
-### Jornada do Usuário - Entrada até Saída
-
-```mermaid
-flowchart TD
-    A[🚗 Veículo chega] --> B[Sensor detecta entrada]
-    B --> C[Sistema gera código de acesso]
-    C --> D[Ticket impresso/fornecido]
-    D --> E[Catraca abre - Entrada]
-    
-    E --> F[🕐 Veículo estacionado]
-    
-    F --> G[👤 Usuário retorna]
-    G --> H{Terminal Web:<br/>Inserir código}
-    
-    H --> I[Sistema calcula tempo]
-    I --> J[Gera pagamento PIX]
-    J --> K{Pagamento<br/>aprovado?}
-    
-    K -->|Não| L[Aguarda pagamento<br/>Monitor SSE]
-    L --> K
-    
-    K -->|Sim| M[Libera saída]
-    M --> N[Catraca abre - Saída]
-    N --> O[✅ Processo concluído]
-    
-    style A fill:#e3f2fd
-    style E fill:#c8e6c9
-    style J fill:#fff9c4
-    style M fill:#c8e6c9
-    style O fill:#a5d6a7
-```
-
-### Fluxo Técnico - Saída com Pagamento
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant User as 👤 Terminal Web
-    participant API as ☕ Spring Boot API
-    participant DB as 🗄️ MySQL
-    participant MP as 💳 Mercado Pago
-    participant Node as 🟢 Node.js
-    participant ESP as 📟 ESP32
-
-    User->>API: PUT /access/exit {code}
-    API->>DB: Buscar Access ativo
-    DB-->>API: Access com entrada registrada
-    
-    API->>API: Calcular tempo permanência
-    API->>DB: Criar Payment (amount calculado)
-    API->>MP: Gerar PIX QR Code
-    MP-->>API: PaymentInfo (id, qrCode)
-    API-->>User: PaymentResponse + QR Code
-    
-    User->>User: Exibir QR Code
-    User->>API: GET /payments/stream/{id} (SSE)
-    
-    loop Monitor Payment Status
-        API->>MP: Consultar status pagamento
-        MP-->>API: Status (pending/approved)
-        API-->>User: Stream status update
-    end
-    
-    Note over User,MP: Usuário escaneia QR e paga
-    
-    MP-->>API: Status = APPROVED
-    API->>DB: Atualizar Payment.paid = true
-    API->>DB: Registrar Access.exit timestamp
-    API->>Node: ExitAccessEvent
-    Node->>ESP: Comando: Abrir catraca
-    ESP->>ESP: Acionar liberação física
-    API-->>User: ✅ Liberado para saída
-```
-
----
-
-## 🛠 Tech Stack
-
-### Backend (Core)
+### Backend Core
 
 | Tecnologia | Versão | Propósito |
 |------------|--------|-----------|
-| ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk) | 21 LTS | Runtime principal com Virtual Threads |
-| ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?style=flat-square&logo=springboot) | 3.5.11 | Framework de aplicação |
-| ![Spring WebFlux](https://img.shields.io/badge/WebFlux-Reactive-6DB33F?style=flat-square&logo=spring) | - | Programação reativa e SSE |
-| ![Spring Data JPA](https://img.shields.io/badge/JPA-Hibernate-59666C?style=flat-square&logo=hibernate) | - | ORM e persistência |
-| ![Lombok](https://img.shields.io/badge/Lombok-Latest-red?style=flat-square) | - | Redução de boilerplate |
+| Java | 21 LTS | Runtime principal com Virtual Threads |
+| Spring Boot | 3.5.11 | Framework de aplicação |
+| Spring WebFlux | 6.x | Programação reativa e Server-Sent Events |
+| Spring Data JPA | 3.x | ORM e persistência de dados |
+| Hibernate | 6.x | Implementação JPA |
+| Lombok | Latest | Redução de boilerplate code |
 
-### Integrações & Pagamentos
-
-| Tecnologia | Propósito |
-|------------|-----------|
-| ![Mercado Pago](https://img.shields.io/badge/Mercado%20Pago-SDK%202.1-009EE3?style=flat-square&logo=mercadopago) | Processamento de pagamentos PIX |
-| ![Bean Validation](https://img.shields.io/badge/Validation-Jakarta-orange?style=flat-square) | Validação de entrada de dados |
-
-### Middleware & Infraestrutura
+### Integrações
 
 | Tecnologia | Propósito |
 |------------|-----------|
-| ![Node.js](https://img.shields.io/badge/Node.js-Orchestrator-339933?style=flat-square&logo=nodedotjs) | Orquestração de comandos IoT |
-| ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql) | Persistência de dados |
-| ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker) | Containerização e orquestração |
+| Mercado Pago SDK | 2.1+ | Processamento de pagamentos PIX |
+| Jakarta Validation | 3.x | Validação de entrada de dados |
+| MySQL Driver | 8.0+ | Conexão com banco de dados |
 
-### Frontend (Presentation)
+### Infraestrutura
 
 | Tecnologia | Propósito |
 |------------|-----------|
-| ![HTML5](https://img.shields.io/badge/HTML5-Modern-E34F26?style=flat-square&logo=html5&logoColor=white) | Estrutura da aplicação web |
-| ![TailwindCSS](https://img.shields.io/badge/Tailwind-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) | Estilização responsiva |
-| ![JavaScript](https://img.shields.io/badge/Vanilla%20JS-ES6+-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | Lógica client-side e chamadas à API |
-
-### Hardware (IoT)
-
-| Componente | Função |
-|------------|--------|
-| ![ESP32](https://img.shields.io/badge/ESP32-Firmware-000000?style=flat-square&logo=espressif) | Microcontrolador para acionamento físico |
-| Sensores RFID/NFC | Leitura de códigos de acesso |
-| Relés/Fechaduras | Mecanismo de liberação física |
+| MySQL | 8.0 | Banco de dados relacional |
+| Docker | 20+ | Containerização da aplicação |
+| Docker Compose | 1.29+ | Orquestração de containers |
 
 ---
 
-## 🏗 Arquitetura
+## Arquitetura
 
-O Libera.ai foi construído seguindo os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**, organizado em **módulos independentes** (Access e Payment) que representam **Bounded Contexts** distintos. Cada módulo possui sua própria camada de apresentação, aplicação, domínio e infraestrutura.
+O backend utiliza **Clean Architecture** e **Domain-Driven Design (DDD)**, organizado em módulos independentes (Access e Payment) que representam Bounded Contexts distintos.
 
-### Visão Geral da Arquitetura em Camadas
+### Camadas da Arquitetura
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["🎨 PRESENTATION LAYER"]
-        direction LR
-        WEB["Interface Web<br/>(HTML/TailwindCSS)"]
+    subgraph Presentation["PRESENTATION LAYER"]
         CTRL["Controllers REST"]
-        DTO["DTOs Request/Response"]
+        DTO["DTOs"]
         MAPPER["Mappers"]
     end
     
-    subgraph Application["📦 APPLICATION LAYER"]
-        direction LR
-        UC_ACCESS["AccessExitUseCase"]
-        UC_PAYMENT["CreatePaymentUseCase<br/>GetPaymentStatusUseCase"]
+    subgraph Application["APPLICATION LAYER"]
+        UC_ACCESS["Access Use Cases"]
+        UC_PAYMENT["Payment Use Cases"]
     end
     
-    subgraph Domain["💎 DOMAIN LAYER (Core)"]
-        direction TB
-        subgraph AccessBC["Access Bounded Context"]
+    subgraph Domain["DOMAIN LAYER"]
+        subgraph AccessBC["Access Module"]
             ACCESS_MODEL["Access Entity"]
-            ACCESS_EVENT["ExitAccessEvent"]
-            ACCESS_PORT["Ports:<br/>AccessRepository<br/>ExitEventProducer"]
+            ACCESS_PORT["Ports/Interfaces"]
         end
         
-        subgraph PaymentBC["Payment Bounded Context"]
-            PAYMENT_MODEL["Payment Entity<br/>PaymentInfo"]
-            PAYMENT_PORT["Ports:<br/>PaymentRepository<br/>PaymentProvider"]
+        subgraph PaymentBC["Payment Module"]
+            PAYMENT_MODEL["Payment Entity"]
+            PAYMENT_PORT["Ports/Interfaces"]
         end
     end
     
-    subgraph Infrastructure["⚙️ INFRASTRUCTURE LAYER"]
-        direction LR
-        JPA["JPA Adapters"]
-        MP["MercadoPago Adapter"]
-        NODE_PROD["Node Producer"]
+    subgraph Infrastructure["INFRASTRUCTURE LAYER"]
+        JPA["JPA Repositories"]
+        MP["Mercado Pago Adapter"]
+        NODE_PROD["IoT Event Producer"]
+    end
+    
+    subgraph External["EXTERNAL SYSTEMS"]
+        MERCADO["Mercado Pago API"]
+        NODE["Node.js IoT Gateway"]
         MYSQL[("MySQL Database")]
     end
     
-    subgraph External["🌐 EXTERNAL SYSTEMS"]
-        direction LR
-        MERCADO["Mercado Pago API"]
-        NODE["Node.js Orchestrator"]
-        ESP["ESP32 Hardware"]
-    end
-    
-    WEB --> CTRL
-    CTRL --> DTO
     CTRL --> UC_ACCESS
     CTRL --> UC_PAYMENT
-    DTO <--> MAPPER
     
     UC_ACCESS --> ACCESS_MODEL
     UC_ACCESS --> ACCESS_PORT
@@ -277,23 +130,13 @@ flowchart TB
     JPA --> MYSQL
     MP --> MERCADO
     NODE_PROD --> NODE
-    NODE --> ESP
-    
-    style Domain fill:#e1f5fe,stroke:#01579b,stroke-width:3px
-    style Application fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style Infrastructure fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style Presentation fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    style External fill:#fce4ec,stroke:#c2185b,stroke-width:2px
 ```
 
-### Princípios Arquiteturais Aplicados
-
-| Camada | Responsabilidade | Dependências | Tecnologias |
-|--------|------------------|--------------|-------------|
-| **Presentation** | Interface com usuário e adaptação de dados | Depende de Application | Controllers, DTOs, Mappers |
-| **Application** | Orquestração de casos de uso | Depende apenas de Domain | Use Cases, Application Services |
-| **Domain** | Regras de negócio puras e eventos | **Nenhuma dependência externa** | Entities, Value Objects, Ports |
-| **Infrastructure** | Implementações técnicas e integrações | Implementa interfaces de Domain | JPA, Mercado Pago SDK, RestTemplate |
+**Camadas**:
+- **Presentation**: Controllers REST que expõem endpoints HTTP
+- **Application**: Use Cases que orquestram lógica de negócio
+- **Domain**: Entidades e regras de negócio puras (Access e Payment modules)
+- **Infrastructure**: Implementações técnicas (JPA, Mercado Pago, IoT)
 
 ---
 
