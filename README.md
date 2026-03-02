@@ -319,12 +319,14 @@ Cada módulo segue a estrutura de Clean Architecture:
 ### Pré-requisitos
 
 - **Docker** 20+ e **Docker Compose** 1.29+
+- **Node.js 20+** (apenas para desenvolvimento local do frontend)
 - **Token de acesso do Mercado Pago** ([obter aqui](https://www.mercadopago.com.br/developers))
-- **Node.js Orchestrator** (gateway entre backend e ESP32)
 
-### Passo 1: Configurar Variáveis de Ambiente
+### Opção 1: Docker Compose (Recomendado)
 
-Crie o arquivo `.env` na pasta `back/`:
+#### Passo 1: Configurar Variáveis de Ambiente
+
+Crie o arquivo `.env` na raiz do projeto (copie de `.env.example`):
 
 ```env
 # Configurações do Banco de Dados MySQL
@@ -336,77 +338,120 @@ DB_PASSWORD=sua_senha_usuario_segura
 # Credenciais do Mercado Pago
 MERCADOPAGO_ACCESS_TOKEN=seu_access_token_mercadopago
 
-# Configurações do Node.js Orchestrator (IoT Gateway)
+# Node.js Orchestrator (opcional - para integração IoT)
 NODE_HOST=172.17.0.1
 NODE_PORT=3000
 ```
 
-**Notas importantes**:
-- O `MERCADOPAGO_ACCESS_TOKEN` pode ser obtido no [painel de desenvolvedores do Mercado Pago](https://www.mercadopago.com.br/developers)
-- Use tokens de **teste** durante desenvolvimento e **produção** apenas em ambiente real
-- O `NODE_HOST` deve apontar para o endereço onde o orchestrator Node.js está rodando
-- Ajuste as senhas do banco de dados para senhas fortes em ambiente de produção
-
-### Passo 2: Iniciar os Serviços
+#### Passo 2: Iniciar os Serviços
 
 ```bash
-cd back/
+# Na raiz do projeto
 docker compose up -d --build
 ```
 
 Este comando irá:
-1. Construir a imagem Docker da aplicação Spring Boot
-2. Iniciar container MySQL com as configurações especificadas
-3. Iniciar container da aplicação
-4. Criar automaticamente as tabelas no banco de dados (via JPA/Hibernate)
+1. Construir a imagem do frontend (React + Vite + Nginx)
+2. Construir a imagem do backend (Spring Boot)
+3. Iniciar container MySQL
+4. Criar automaticamente as tabelas no banco via JPA/Hibernate
 
-### Passo 3: Verificar a Instalação
+#### Passo 3: Acessar a Aplicação
 
-**API Backend**:
-```bash
-curl http://localhost:8080/actuator/health
-```
-
-Resposta esperada:
-```json
-{
-  "status": "UP"
-}
-```
-
-**Banco de Dados**:
-```bash
-docker exec -it libera-mysql mysql -u libera_user -p libera_db
-```
-
-### Passo 4: Acessar a Aplicação
-
-- **API Backend**: http://localhost:8080
+- **Frontend (Interface Web)**: http://localhost:3000
+- **Backend (API REST)**: http://localhost:8080
 - **Health Check**: http://localhost:8080/actuator/health
-- **Terminal Web**: Abra o arquivo `front/index.html` em um navegador
-  - Certifique-se de que o navegador pode acessar `http://localhost:8080`
 
-### Comandos Úteis
+### Opção 2: Desenvolvimento Local
 
-**Ver logs da aplicação**:
+#### Frontend
+
 ```bash
-docker compose logs -f app
+cd front
+
+# Instalar dependências
+npm install
+
+# Iniciar servidor de desenvolvimento
+npm run dev
 ```
 
-**Ver logs do MySQL**:
+O frontend rodará em `http://localhost:3000` com hot reload.
+O proxy do Vite redirecionará `/api/*` para `http://localhost:8080`.
+
+#### Backend
+
 ```bash
+cd back
+
+# Criar .env com variáveis necessárias
+# Iniciar com Docker (banco + API)
+docker compose up -d --build
+```
+
+Ou rode localmente com Maven:
+
+```bash
+./mvnw spring-boot:run
+```
+
+### Comandos Docker Úteis
+
+```bash
+# Ver logs em tempo real
+docker compose logs -f
+
+# Ver logs de um serviço específico
+docker compose logs -f front
+docker compose logs -f api
 docker compose logs -f mysql
-```
 
-**Parar os serviços**:
-```bash
+# Parar serviços
 docker compose down
+
+# Parar e remover volumes (limpa dados)
+docker compose down -v
+
+# Rebuild específico
+docker compose up -d --build front
 ```
 
-**Reiniciar os serviços**:
-```bash
-docker compose restart
-```
+### Troubleshooting
+
+#### CORS
+
+O backend já está configurado para aceitar requisições de qualquer origem em desenvolvimento.
+Em produção via Docker, o nginx do frontend faz proxy das requisições para `/api/*`.
+
+#### SSE (Server-Sent Events)
+
+A configuração nginx inclui suporte a SSE:
+- `proxy_buffering off`
+- `proxy_cache off`
+- `proxy_read_timeout 86400s`
+
+Se o monitoramento de pagamento não funcionar, verifique:
+1. O backend está respondendo em `/payments/stream/{id}`
+2. Não há proxies intermediários bloqueando conexões longas
+
+#### Mercado Pago
+
+- Use tokens de **teste** durante desenvolvimento
+- Configure o webhook URL para receber notificações de pagamento
+- O webhook pode ser exposto via ngrok (ver `back/compose.yml`)
+
+### Variáveis de Ambiente
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `DB_ROOT_PASSWORD` | Senha root do MySQL | - |
+| `DB_NAME` | Nome do banco de dados | `libera_db` |
+| `DB_USER` | Usuário do banco | `libera_user` |
+| `DB_PASSWORD` | Senha do usuário | - |
+| `MERCADOPAGO_ACCESS_TOKEN` | Token de acesso Mercado Pago | - |
+| `NODE_HOST` | Host do orchestrator IoT | `172.17.0.1` |
+| `NODE_PORT` | Porta do orchestrator IoT | `3000` |
+| `VITE_API_URL` | URL da API no frontend | `/api` |
 
 **Limpar dados e recomeçar**:
 ```bash

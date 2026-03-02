@@ -1,0 +1,77 @@
+services:
+  # Frontend - React/Vite Application
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: libera-front
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - libera_network
+
+  # Backend - Spring Boot API
+  api:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: libera-api
+    restart: unless-stopped
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-libera_db}
+      - DB_USER=${DB_USER:-libera_user}
+      - DB_PASSWORD=${DB_PASSWORD:-libera_password}
+      - NODE_HOST=${NODE_HOST:-172.17.0.1}
+      - NODE_PORT=${NODE_PORT:-3000}
+      - MP_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN:-test_token}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - libera_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Database - MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: libera-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root_password}
+      - MYSQL_DATABASE=${DB_NAME:-libera_db}
+      - MYSQL_USER=${DB_USER:-libera_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-libera_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - libera_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  libera_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
