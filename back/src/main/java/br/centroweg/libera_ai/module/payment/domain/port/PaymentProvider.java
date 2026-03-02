@@ -6,4 +6,6 @@ public interface PaymentProvider {
 
     PaymentInfo generatePayment(double mount);
 
+    String fetchStatus(String externalId);
+
 }

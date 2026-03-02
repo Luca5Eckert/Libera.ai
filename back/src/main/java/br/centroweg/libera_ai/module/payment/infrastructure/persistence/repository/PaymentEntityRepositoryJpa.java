@@ -1,5 +1,6 @@
 package br.centroweg.libera_ai.module.payment.infrastructure.persistence.repository;
 
+import br.centroweg.libera_ai.module.payment.domain.model.Payment;
 import br.centroweg.libera_ai.module.payment.infrastructure.persistence.entity.PaymentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,4 +13,6 @@ public interface PaymentEntityRepositoryJpa extends JpaRepository<PaymentEntity,
 
 
     Optional<PaymentEntity> findByAccessEntityCode(int code);
+
+    Optional<Payment> findByExternalId();
 }

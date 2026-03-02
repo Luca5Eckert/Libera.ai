@@ -52,4 +52,18 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
             throw new PaymentIntegrationException("Failed to generate Pix payment with Mercado Pago", e);
         }
     }
+
+    @Override
+    public String fetchStatus(String externalId) {
+        try {
+            Long mpId = Long.valueOf(externalId);
+
+            Payment payment = paymentClient.get(mpId);
+
+            return payment.getStatus();
+
+        } catch (MPException | MPApiException e) {
+            throw new PaymentIntegrationException("Failed to verify payment status with Mercado Pago", e);
+        }
+    }
 }

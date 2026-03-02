@@ -23,12 +23,11 @@ public class PaymentEntity {
     private UUID id;
 
     @OneToOne(
-            mappedBy = "access",
             fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
-            targetEntity = AccessEntity.class,
             optional = false
     )
+    @JoinColumn(name = "access_id")
     private AccessEntity access;
 
     private double amount;

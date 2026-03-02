@@ -11,4 +11,6 @@ public interface PaymentRepository {
     Optional<Payment> findById(String paymentId);
 
     Optional<Payment> findByAccessCode(int code);
+
+    Optional<Payment> findByExternalId(String externalId);
 }

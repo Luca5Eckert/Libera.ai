@@ -45,6 +45,12 @@ public class Payment {
         return hours * 10.0;
     }
 
+    public void confirmPayment(String status) {
+        if ("approved".equalsIgnoreCase(status)) {
+            this.paid = true;
+        }
+    }
+
     public boolean isReadyForExit(){
         return paid;
     }

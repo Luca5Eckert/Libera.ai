@@ -35,4 +35,9 @@ public class PaymentEntityRepository implements PaymentRepository {
 
         return paymentEntity.map(PaymentEntity::toDomain);
     }
+
+    @Override
+    public Optional<Payment> findByExternalId(String externalId) {
+        return paymentEntityRepositoryJpa.findByExternalId();
+    }
 }

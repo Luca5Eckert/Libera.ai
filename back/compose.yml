@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   api:
     build:
@@ -14,10 +15,24 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - NODE_HOST=${NODE_HOST}
       - NODE_PORT=${NODE_PORT}
-    ports:
-      - "${APP_PORT}:8080"
+      - WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
     networks:
       - libera_network
+
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: libera-ngrok
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command:
+      - "http"
+      - "api:8080"
+    networks:
+      - libera_network
+    depends_on:
+      - api
 
 networks:
   libera_network:
