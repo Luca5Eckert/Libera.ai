@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface PaymentEntityRepositoryJpa extends JpaRepository<PaymentEntity, UUID> {
 
 
-    Optional<PaymentEntity> findByAccessEntityCode(int code);
+    Optional<PaymentEntity> findByAccessCode(int code);
 
-    Optional<Payment> findByExternalId();
+    Optional<Payment> findByExternalId(String externalId);
 }

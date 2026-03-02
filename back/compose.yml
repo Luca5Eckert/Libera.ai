@@ -24,6 +24,8 @@ services:
     image: ngrok/ngrok:latest
     container_name: libera-ngrok
     restart: unless-stopped
+    ports:
+      - "4040:4040"
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     command:
