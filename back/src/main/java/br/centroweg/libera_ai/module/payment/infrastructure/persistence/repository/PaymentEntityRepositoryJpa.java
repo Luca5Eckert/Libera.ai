@@ -14,5 +14,5 @@ public interface PaymentEntityRepositoryJpa extends JpaRepository<PaymentEntity,
 
     Optional<PaymentEntity> findByAccessCode(int code);
 
-    Optional<Payment> findByExternalId(String externalId);
+    Optional<PaymentEntity> findByExternalId(String externalId);
 }

@@ -40,6 +40,8 @@ public class PaymentEntityRepository implements PaymentRepository {
 
     @Override
     public Optional<Payment> findByExternalId(String externalId) {
-        return paymentEntityRepositoryJpa.findByExternalId(externalId);
+        var paymentEntity = paymentEntityRepositoryJpa.findByExternalId(externalId);
+
+        return paymentEntity.map(PaymentEntity::toDomain);
     }
 }

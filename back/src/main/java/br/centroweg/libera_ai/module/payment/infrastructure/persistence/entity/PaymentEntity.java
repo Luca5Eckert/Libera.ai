@@ -24,7 +24,6 @@ public class PaymentEntity {
 
     @OneToOne(
             fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL,
             optional = false
     )
     @JoinColumn(name = "access_id")

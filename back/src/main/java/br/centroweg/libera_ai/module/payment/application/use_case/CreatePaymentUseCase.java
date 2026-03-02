@@ -8,6 +8,7 @@ import br.centroweg.libera_ai.module.payment.domain.model.PaymentInfo;
 import br.centroweg.libera_ai.module.payment.domain.port.PaymentProvider;
 import br.centroweg.libera_ai.module.payment.domain.port.PaymentRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class CreatePaymentUseCase {
@@ -22,6 +23,7 @@ public class CreatePaymentUseCase {
         this.accessRepository = accessRepository;
     }
 
+    @Transactional
     public PaymentInfo execute(int code) {
         Access access = accessRepository.findByCodeAndExitIsNull(code)
                 .orElseThrow(() -> new AccessDomainException("Access code not valid"));
