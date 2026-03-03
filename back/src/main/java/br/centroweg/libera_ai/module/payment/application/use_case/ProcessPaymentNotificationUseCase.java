@@ -33,7 +33,7 @@ public class ProcessPaymentNotificationUseCase {
         String internalPaymentId = paymentProvider.getExternalReference(mercadoPagoPaymentId);
         if (internalPaymentId == null || internalPaymentId.isEmpty()) {
             log.warn("No external_reference found for Mercado Pago payment ID: {}", mercadoPagoPaymentId);
-            throw new PaymentException("Payment not found - no external reference");
+            throw new PaymentException("No external_reference found for Mercado Pago payment ID: " + mercadoPagoPaymentId);
         }
 
         log.info("Found internal payment ID: {}", internalPaymentId);
