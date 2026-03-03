@@ -75,19 +75,11 @@ public class PaymentController {
      */
     @PostMapping("/webhook")
     public ResponseEntity<Void> handleWebhook(@RequestBody MercadoPagoWebhookRequest request) {
-        log.info("[WEBHOOK] Received notification - Type: {}, Action: {}, Data ID: {}", 
-                request.type(), request.action(), request.data() != null ? request.data().paymentId() : "null");
-
-        // Step 1: Return 200 immediately as recommended by Mercado Pago
-        // This prevents MP from sending retries while we process
-        
-        // Step 2: Validate the webhook type - only process payment notifications
         if (request.type() == null || !request.type().equals("payment")) {
             log.info("[WEBHOOK] Ignoring non-payment notification type: {}", request.type());
             return ResponseEntity.ok().build();
         }
 
-        // Step 3: Validate required data
         if (request.data() == null || request.data().paymentId() == null || request.data().paymentId().isBlank()) {
             log.warn("[WEBHOOK] Received notification with missing data or payment ID");
             return ResponseEntity.ok().build();
@@ -95,8 +87,6 @@ public class PaymentController {
 
         String paymentId = request.data().paymentId();
 
-        // Step 4: Process asynchronously to ensure we return 200 quickly
-        // This is important because MP expects a quick response
         CompletableFuture.runAsync(() -> {
             try {
                 processPaymentNotificationUseCase.execute(paymentId);
