@@ -6,7 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b881b869-1c6c-4250-9869-6bc8bd0b8410" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/domain/model/Payment.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/domain/model/Payment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/infrastructure/payment/MercadoPagoPaymentProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/infrastructure/payment/MercadoPagoPaymentProvider.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +51,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "#10 on copilot/fix-mercado-pago-integration",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "C:/Users/Pichau/OneDrive/Documentos/Libera.ai",

@@ -66,9 +66,9 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                     .build();
 
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("https://overstudious-lani-patterny.ngrok-free.dev/success")
-                    .failure("https://overstudious-lani-patterny.ngrok-free.dev/failure")
-                    .pending("https://overstudious-lani-patterny.ngrok-free.dev/pending")
+                    .success("http://localhost:3000/")
+                    .failure("http://localhost:3000/")
+                    .pending("http://localhost:3000/")
                     .build();
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()

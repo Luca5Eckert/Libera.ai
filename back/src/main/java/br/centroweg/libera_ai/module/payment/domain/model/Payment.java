@@ -70,17 +70,14 @@ public class Payment {
      * - We still allow the same MP payment ID to send updates (e.g., for refunds)
      */
     public boolean processStatusUpdate(String mercadoPagoPaymentId, String status) {
-        // Idempotency check: skip if we already processed this MP payment ID with same status
-        if (mercadoPagoPaymentId != null && mercadoPagoPaymentId.equals(this.lastProcessedMpPaymentId) 
+        if (mercadoPagoPaymentId != null && mercadoPagoPaymentId.equals(this.lastProcessedMpPaymentId)
             && status != null && status.equals(this.paymentStatus)) {
             return false;
         }
         
-        // Security check: once approved, don't accept updates from a different MP payment ID
-        // This prevents scenarios where someone tries to change the status using a different payment
+
         if (this.paid && this.lastProcessedMpPaymentId != null 
             && !this.lastProcessedMpPaymentId.equals(mercadoPagoPaymentId)) {
-            // Already approved with a different payment ID - ignore this notification
             return false;
         }
         
@@ -89,14 +86,7 @@ public class Payment {
         
         if ("approved".equalsIgnoreCase(status)) {
             this.paid = true;
-        } else if ("rejected".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
-            // Only set to false if not already approved (handle refund case separately if needed)
-            if (!this.paid) {
-                this.paid = false;
-            }
         }
-        // For "pending" and other statuses, keep current paid state
-        
         return true;
     }
 

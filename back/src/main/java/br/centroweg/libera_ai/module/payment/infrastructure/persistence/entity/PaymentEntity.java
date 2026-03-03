@@ -19,7 +19,6 @@ import java.util.UUID;
 public class PaymentEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @OneToOne(
@@ -39,7 +38,8 @@ public class PaymentEntity {
 
     private String paymentStatus;
 
-    public PaymentEntity(AccessEntity access, double amount, boolean paid, String externalId) {
+    public PaymentEntity(String id, AccessEntity access, double amount, boolean paid, String externalId) {
+        this.id = UUID.fromString(id);
         this.access = access;
         this.amount = amount;
         this.paid = paid;
@@ -48,6 +48,7 @@ public class PaymentEntity {
 
     public static PaymentEntity of(Payment payment) {
         PaymentEntity entity = new PaymentEntity(
+                payment.getId(),
                 AccessEntity.of(payment.getAccess()),
                 payment.getAmount(),
                 payment.isPaid(),
