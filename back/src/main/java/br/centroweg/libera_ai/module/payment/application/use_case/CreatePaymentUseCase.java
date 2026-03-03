@@ -30,13 +30,19 @@ public class CreatePaymentUseCase {
 
         Payment payment = Payment.of(access);
 
-        PaymentInfo info = paymentProvider.generatePayment(payment.getAmount());
+        // Generate payment with internal payment ID as external_reference
+        PaymentInfo info = paymentProvider.generatePayment(payment.getAmount(), payment.getId());
 
         payment.setExternalId(info.generatedPaymentId());
 
         paymentRepository.save(payment);
 
-        return info;
+        // Return PaymentInfo with the internal payment ID (not preference ID)
+        return new PaymentInfo(
+                payment.getId(),
+                info.linkPayment(),
+                info.amount()
+        );
     }
 
 }

@@ -5,7 +5,7 @@ export interface CreatePaymentRequest {
 
 export interface PaymentResponse {
   amount: number;
-  qrCode: string;
+  linkPayment: string;
   paymentId: string;
 }
 

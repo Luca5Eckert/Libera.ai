@@ -1,37 +1,28 @@
-import { useState } from 'react';
-import QRCode from 'react-qr-code';
+import { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import { usePaymentStream } from '../hooks/usePaymentStream';
 import type { PaymentResponse } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { StatusBadge } from '../components/StatusBadge';
-import { CopyButton } from '../components/CopyButton';
 import { formatCurrency } from '../utils/date';
-
-/**
- * Check if a string is base64 encoded image data.
- * Mercado Pago returns QR code as base64 image, while some implementations
- * may return PIX EMV payload text.
- */
-function isBase64Image(str: string): boolean {
-  // Already a data URL
-  if (str.startsWith('data:image/')) {
-    return true;
-  }
-  // Base64 encoded string (typical for PNG images, starts with iVBOR)
-  if (/^[A-Za-z0-9+/=]+$/.test(str) && str.startsWith('iVBOR')) {
-    return true;
-  }
-  return false;
-}
 
 export function PaymentPage() {
   const [accessCode, setAccessCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [payment, setPayment] = useState<PaymentResponse | null>(null);
+  const [waitingPayment, setWaitingPayment] = useState(false);
 
   const { status, isApproved, reconnect } = usePaymentStream(payment?.paymentId ?? null);
+
+  // Effect to automatically redirect to Mercado Pago when payment is created
+  useEffect(() => {
+    if (payment?.linkPayment && !waitingPayment) {
+      // Open Mercado Pago checkout in a new tab
+      window.open(payment.linkPayment, '_blank');
+      setWaitingPayment(true);
+    }
+  }, [payment, waitingPayment]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,10 +47,17 @@ export function PaymentPage() {
     }
   };
 
+  const handleOpenCheckout = () => {
+    if (payment?.linkPayment) {
+      window.open(payment.linkPayment, '_blank');
+    }
+  };
+
   const handleReset = () => {
     setPayment(null);
     setAccessCode('');
     setError(null);
+    setWaitingPayment(false);
   };
 
   // Initial form view
@@ -68,7 +66,7 @@ export function PaymentPage() {
       <div className="min-h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center p-4">
         <div className="card w-full max-w-md">
           <header className="text-center mb-8 pb-6 border-b border-gray-100">
-            <h1 className="text-2xl font-bold tracking-tight text-black">Pagamento PIX</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-black">Pagamento</h1>
             <p className="text-sm text-gray-500 mt-1">Insira o código do seu ticket</p>
           </header>
 
@@ -104,10 +102,10 @@ export function PaymentPage() {
               {isLoading ? (
                 <>
                   <LoadingSpinner size="sm" />
-                  Gerando PIX...
+                  Gerando pagamento...
                 </>
               ) : (
-                'Gerar PIX'
+                'Pagar'
               )}
             </button>
           </form>
@@ -116,16 +114,18 @@ export function PaymentPage() {
     );
   }
 
-  // Payment view with QR code
+  // Payment view - waiting for Checkout Pro completion
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center p-4">
       <div className="card w-full max-w-md">
         <header className="text-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight text-black">
-            {isApproved ? 'Pagamento Aprovado!' : 'Pague com PIX'}
+            {isApproved ? 'Pagamento Aprovado!' : 'Aguardando Pagamento'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            {isApproved ? 'Você já pode liberar a saída' : 'Escaneie o QR Code ou copie o código'}
+            {isApproved 
+              ? 'Você já pode liberar a saída' 
+              : 'Complete o pagamento na aba do Mercado Pago'}
           </p>
         </header>
 
@@ -142,29 +142,22 @@ export function PaymentPage() {
           <p className="text-3xl font-bold text-black">{formatCurrency(payment.amount)}</p>
         </div>
 
-        {/* QR Code */}
+        {/* Waiting animation */}
         {!isApproved && (
           <div className="flex flex-col items-center gap-4 mb-6">
             <div className="p-4 bg-white border-2 border-gray-200 rounded-xl">
-              {isBase64Image(payment.qrCode) ? (
-                // If qrCode is base64 image data from Mercado Pago
-                <img
-                  src={
-                    payment.qrCode.startsWith('data:')
-                      ? payment.qrCode
-                      : `data:image/png;base64,${payment.qrCode}`
-                  }
-                  alt="QR Code PIX"
-                  className="w-48 h-48"
-                />
-              ) : (
-                // If qrCode is PIX EMV text payload, generate QR client-side
-                <QRCode value={payment.qrCode} size={192} level="M" />
-              )}
+              <div className="w-48 h-48 flex items-center justify-center">
+                <div className="text-center">
+                  <LoadingSpinner size="lg" />
+                  <p className="mt-4 text-sm text-gray-500">Aguardando confirmação...</p>
+                </div>
+              </div>
             </div>
 
-            {/* Copy PIX code */}
-            <CopyButton text={payment.qrCode} />
+            {/* Button to re-open checkout */}
+            <button onClick={handleOpenCheckout} className="btn-secondary text-sm">
+              Abrir Checkout Novamente
+            </button>
           </div>
         )}
 

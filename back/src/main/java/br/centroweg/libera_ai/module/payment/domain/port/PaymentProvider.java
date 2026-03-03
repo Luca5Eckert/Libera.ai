@@ -4,8 +4,10 @@ import br.centroweg.libera_ai.module.payment.domain.model.PaymentInfo;
 
 public interface PaymentProvider {
 
-    PaymentInfo generatePayment(double mount);
+    PaymentInfo generatePayment(double amount, String internalPaymentId);
 
-    String fetchStatus(String externalId);
+    String fetchStatus(String mercadoPagoPaymentId);
+
+    String getExternalReference(String mercadoPagoPaymentId);
 
 }

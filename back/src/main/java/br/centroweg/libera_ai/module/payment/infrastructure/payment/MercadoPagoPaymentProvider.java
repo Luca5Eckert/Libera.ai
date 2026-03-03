@@ -46,9 +46,9 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
     }
 
     @Override
-    public PaymentInfo generatePayment(double amount) {
+    public PaymentInfo generatePayment(double amount, String internalPaymentId) {
         try {
-            log.info("Gerando preferência de pagamento (Checkout Pro) no valor de: {}", amount);
+            log.info("Gerando preferência de pagamento (Checkout Pro) no valor de: {} para pagamento interno: {}", amount, internalPaymentId);
 
             PreferenceItemRequest item = PreferenceItemRequest.builder()
                     .title("Estacionamento Libera.ai")
@@ -59,6 +59,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
 
             PreferenceRequest.PreferenceRequestBuilder builder = PreferenceRequest.builder()
                     .items(Collections.singletonList(item))
+                    .externalReference(internalPaymentId)
                     .notificationUrl(notificationUrl.isEmpty() ? null : notificationUrl)
                     .backUrls(PreferenceBackUrlsRequest.builder()
                             .success("https://seu-app.com/success")
@@ -72,7 +73,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
 
             Preference preference = preferenceClient.create(builder.build(), requestOptions);
 
-            log.info("Preferência criada com sucesso! ID: {}", preference.getId());
+            log.info("Preferência criada com sucesso! ID: {}, External Reference: {}", preference.getId(), internalPaymentId);
 
             return new PaymentInfo(
                     preference.getId(),
@@ -90,19 +91,40 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
     }
 
     @Override
-    public String fetchStatus(String externalId) {
+    public String fetchStatus(String mercadoPagoPaymentId) {
         try {
-            log.info("Buscando status do pagamento: {}", externalId);
+            log.info("Buscando status do pagamento MP: {}", mercadoPagoPaymentId);
 
             MPRequestOptions requestOptions = MPRequestOptions.builder()
                     .accessToken(accessToken)
                     .build();
 
-            Payment payment = paymentClient.get(Long.valueOf(externalId), requestOptions);
-            return payment.getStatus();
+            Payment payment = paymentClient.get(Long.valueOf(mercadoPagoPaymentId), requestOptions);
+            String status = payment.getStatus();
+            log.info("Status do pagamento {}: {}", mercadoPagoPaymentId, status);
+            return status;
         } catch (Exception e) {
-            log.error("Erro ao buscar status: {}", e.getMessage());
+            log.error("Erro ao buscar status do pagamento {}: {}", mercadoPagoPaymentId, e.getMessage());
             return "pending";
+        }
+    }
+
+    @Override
+    public String getExternalReference(String mercadoPagoPaymentId) {
+        try {
+            log.info("Buscando external_reference do pagamento MP: {}", mercadoPagoPaymentId);
+
+            MPRequestOptions requestOptions = MPRequestOptions.builder()
+                    .accessToken(accessToken)
+                    .build();
+
+            Payment payment = paymentClient.get(Long.valueOf(mercadoPagoPaymentId), requestOptions);
+            String externalRef = payment.getExternalReference();
+            log.info("External reference do pagamento {}: {}", mercadoPagoPaymentId, externalRef);
+            return externalRef;
+        } catch (Exception e) {
+            log.error("Erro ao buscar external_reference do pagamento {}: {}", mercadoPagoPaymentId, e.getMessage());
+            return null;
         }
     }
 
