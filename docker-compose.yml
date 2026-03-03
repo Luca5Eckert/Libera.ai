@@ -35,6 +35,7 @@ services:
       - WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
       - MP_ACCESS_TOKEN=${MP_ACCESS_TOKEN}
       - MP_DEFAULT_PAYER_ID=${MP_DEFAULT_PAYER_ID}
+      - MP_DEFAULT_PAYER_EMAIL=${MP_DEFAULT_PAYER_EMAIL}
     networks:
       - libera_network
 
