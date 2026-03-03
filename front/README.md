@@ -1,156 +1,262 @@
 # Libera.ai - Frontend
 
-Interface web para o sistema de estacionamento Libera.ai, construída com React, TypeScript, Vite e TailwindCSS.
+Interface web para o sistema de estacionamento Libera.ai, construida com React, TypeScript, Vite e TailwindCSS.
 
-## 🚀 Tecnologias
+---
 
-- **React 19** - Biblioteca de interface de usuário
-- **TypeScript** - Tipagem estática
-- **Vite** - Build tool e dev server
-- **TailwindCSS 4** - Framework CSS utilitário
-- **React Router** - Roteamento SPA
-- **react-qr-code** - Geração de QR Codes
+## Indice
 
-## 📁 Estrutura do Projeto
+- [Visao Geral](#visao-geral)
+- [Tecnologias](#tecnologias)
+- [Decisoes Tecnicas](#decisoes-tecnicas)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Desenvolvimento Local](#desenvolvimento-local)
+- [Docker](#docker)
+- [Integracao com Backend](#integracao-com-backend)
+
+---
+
+## Visao Geral
+
+O frontend do Libera.ai e uma Single Page Application (SPA) que fornece duas funcionalidades principais:
+
+1. **Terminal de Pagamento**: Usuario insere codigo do ticket, visualiza QR Code PIX e acompanha status do pagamento em tempo real.
+2. **Terminal de Saida**: Usuario valida ticket pago e aciona abertura da cancela.
+
+---
+
+## Tecnologias
+
+| Tecnologia | Versao | Proposito |
+|------------|--------|-----------|
+| React | 19 | Biblioteca de UI com componentes reativos |
+| TypeScript | 5.x | Tipagem estatica para prevencao de erros |
+| Vite | 6.x | Build tool e dev server com hot reload |
+| TailwindCSS | 4 | Framework CSS utilitario |
+| React Router | 7.x | Roteamento SPA |
+| react-qr-code | 4.x | Geracao de QR Codes client-side |
+
+---
+
+## Decisoes Tecnicas
+
+### Por que React com TypeScript?
+
+**Problema**: A interface precisa gerenciar estados complexos durante o fluxo de pagamento (aguardando codigo, gerando PIX, monitorando pagamento, aprovado).
+
+**Solucao**: React permite modelar cada estado como componente declarativo. TypeScript garante que transicoes de estado sao validas em tempo de compilacao.
+
+```typescript
+// Estados tipados garantem consistencia
+type PaymentStatus = 'idle' | 'connecting' | 'waiting' | 'approved' | 'error';
+```
+
+### Por que Vite ao inves de Create React App?
+
+**Problema**: CRA e lento para builds e hot reload em projetos modernos.
+
+**Solucao**: Vite usa ESM nativo durante desenvolvimento, resultando em startup instantaneo e hot reload em menos de 100ms. Build de producao e 10x mais rapido.
+
+### Por que TailwindCSS?
+
+**Problema**: CSS customizado consome tempo e cria inconsistencias visuais.
+
+**Solucao**: TailwindCSS permite desenvolvimento rapido com classes utilitarias. O design system fica consistente e responsivo sem CSS adicional.
+
+```tsx
+// Estilizacao direta no componente
+<button className="btn-primary bg-black text-white px-4 py-2 rounded">
+  Gerar PIX
+</button>
+```
+
+### Server-Sent Events (SSE) para Monitoramento
+
+**Problema**: O usuario precisa saber quando o pagamento foi confirmado sem recarregar a pagina.
+
+**Alternativas consideradas**:
+1. **Polling**: Requisicoes periodicas ao servidor. Ineficiente e consome recursos.
+2. **WebSocket**: Bidirecional, mas complexo para este caso de uso unidirecional.
+3. **SSE**: Conexao unidirecional do servidor para cliente. Ideal para atualizacoes de status.
+
+**Implementacao**: Hook customizado `usePaymentStream` gerencia conexao SSE com reconexao automatica.
+
+```typescript
+// Hook encapsula toda a logica de conexao SSE
+const { status, isApproved, reconnect } = usePaymentStream(paymentId);
+```
+
+**Caracteristicas**:
+- Reconexao automatica com backoff exponencial
+- Cleanup automatico ao desmontar componente
+- Estados tipados para UI reativa
+
+### QR Code Client-side vs Server-side
+
+**Problema**: Mercado Pago retorna QR Code como base64 ou como payload EMV (texto).
+
+**Solucao**: Detectamos o formato recebido e renderizamos apropriadamente:
+- Base64: Renderiza como imagem diretamente
+- EMV Payload: Gera QR Code client-side com `react-qr-code`
+
+```typescript
+function isBase64Image(str: string): boolean {
+  if (str.startsWith('data:image/')) return true;
+  if (/^[A-Za-z0-9+/=]+$/.test(str) && str.startsWith('iVBOR')) return true;
+  return false;
+}
+```
+
+---
+
+## Estrutura do Projeto
 
 ```
 src/
-├── api/              # Cliente API (fetch)
-├── components/       # Componentes reutilizáveis
-├── hooks/            # React hooks customizados
-├── pages/            # Páginas da aplicação
-├── types/            # Tipos TypeScript
-├── index.css         # Estilos globais + Tailwind
-├── main.tsx          # Entry point
-└── App.tsx           # Componente raiz com rotas
+├── api/
+│   └── client.ts         # Cliente API centralizado com tipagem
+│
+├── components/
+│   ├── CopyButton.tsx    # Botao de copiar para clipboard
+│   ├── LoadingSpinner.tsx
+│   ├── Navigation.tsx    # Header de navegacao
+│   └── StatusBadge.tsx   # Badge de status do pagamento
+│
+├── hooks/
+│   └── usePaymentStream.ts  # Hook SSE para monitoramento
+│
+├── pages/
+│   ├── PaymentPage.tsx   # Fluxo de pagamento PIX
+│   └── ExitPage.tsx      # Terminal de saida
+│
+├── types/
+│   └── index.ts          # Tipos TypeScript compartilhados
+│
+├── utils/
+│   └── date.ts           # Formatacao de datas e valores
+│
+├── App.tsx               # Componente raiz com rotas
+├── main.tsx              # Entry point
+└── index.css             # Estilos globais + Tailwind
 ```
 
-## 🛠️ Desenvolvimento Local
+### Organizacao por Feature
 
-### Pré-requisitos
+Cada pagina e autocontida com sua logica de estado e chamadas de API. Componentes compartilhados ficam em `/components`.
+
+---
+
+## Desenvolvimento Local
+
+### Pre-requisitos
 
 - Node.js 20+
 - npm ou pnpm
 
-### Instalação
+### Instalacao
 
 ```bash
-# Instalar dependências
 npm install
-
-# Rodar em modo de desenvolvimento
 npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:3000`.
+A aplicacao estara disponivel em `http://localhost:3000`.
 
-### Variáveis de Ambiente
+### Proxy de Desenvolvimento
 
-Em desenvolvimento, a API é acessada via proxy do Vite (configurado em `vite.config.ts`).
-O proxy redireciona `/api/*` para `http://localhost:8080/*`.
+O Vite proxy redireciona `/api/*` para o backend:
 
-Para produção, crie um arquivo `.env.production`:
-
-```env
-VITE_API_URL=/api
+```typescript
+// vite.config.ts
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api/, '')
+    }
+  }
+}
 ```
 
-### Scripts Disponíveis
+### Scripts Disponiveis
 
-```bash
-npm run dev      # Servidor de desenvolvimento com hot reload
-npm run build    # Build de produção
-npm run preview  # Preview do build de produção
-npm run lint     # Verificar código com ESLint
-```
+| Script | Descricao |
+|--------|-----------|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de producao |
+| `npm run preview` | Preview do build |
+| `npm run lint` | Verificar codigo com ESLint |
 
-## 🐳 Docker
+---
 
-### Build da Imagem
+## Docker
+
+### Build
 
 ```bash
 docker build -t libera-front .
 ```
 
-### Execução Standalone
+### Execucao
 
 ```bash
 docker run -p 3000:80 libera-front
 ```
 
-### Com Docker Compose (Recomendado)
+### Configuracao Nginx para SSE
 
-Na raiz do projeto:
+O `nginx.conf` inclui configuracoes especificas para Server-Sent Events:
 
-```bash
-docker compose up -d --build
+```nginx
+location /api/payments/stream {
+    proxy_pass http://api:8080;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 86400s;
+}
 ```
 
-## 🎨 Design System
+---
 
-A interface utiliza uma paleta **preto e branco** com tons de cinza, seguindo princípios de design minimalista:
+## Integracao com Backend
 
-- **Cores principais**: Preto (#000), Branco (#FFF), tons de cinza
-- **Tipografia**: Inter (Google Fonts)
-- **Componentes**: Cards com bordas sutis, botões com feedback visual
-- **Estados**: Loading discreto, badges de status coloridos
+### Endpoints Consumidos
 
-## 📱 Páginas
-
-### 1. Pagamento PIX (`/`)
-
-- Campo para inserir código do ticket
-- Geração de QR Code PIX
-- Código copia-e-cola com botão de copiar
-- Monitoramento em tempo real via SSE
-- Estados: Aguardando → Aprovado
-
-### 2. Terminal de Saída (`/exit`)
-
-- Validação do ticket após pagamento
-- Exibição de entrada, saída e tempo total
-- Liberação da cancela
-
-## 🔌 Integração com Backend
-
-A aplicação se comunica com a API REST do backend:
-
-| Endpoint | Método | Descrição |
+| Endpoint | Metodo | Descricao |
 |----------|--------|-----------|
 | `/payments` | POST | Criar pagamento PIX |
-| `/payments/stream/{id}` | GET (SSE) | Monitorar status do pagamento |
-| `/access/exit` | PUT | Registrar saída e liberar cancela |
+| `/payments/stream/{id}` | GET (SSE) | Monitorar status |
+| `/access/exit` | PUT | Registrar saida |
 
-### Server-Sent Events (SSE)
+### Cliente API Tipado
 
-O hook `usePaymentStream` implementa:
-- Reconexão automática com backoff exponencial
-- Estados: `idle`, `connecting`, `waiting`, `approved`, `error`
-- Cleanup automático ao desmontar/trocar de rota
-- Fallback para navegadores sem suporte SSE
+O cliente centralizado garante tipagem em todas as chamadas:
 
-## 🔧 Troubleshooting
-
-### CORS em Desenvolvimento
-
-Em desenvolvimento local, o Vite proxy resolve problemas de CORS.
-Se ainda houver erro, verifique se o backend está rodando em `localhost:8080`.
-
-### SSE não conecta
-
-1. Verifique se o backend está rodando
-2. Confirme que a rota `/payments/stream/{id}` está acessível
-3. No Docker, certifique-se que o proxy nginx está configurado corretamente
-
-### Build falha
-
-```bash
-# Limpar cache e reinstalar
-rm -rf node_modules dist
-npm install
-npm run build
+```typescript
+class ApiClient {
+  async createPayment(request: CreatePaymentRequest): Promise<PaymentResponse>;
+  async exitAccess(request: AccessExitRequest): Promise<AccessExitResponse>;
+  getPaymentStreamUrl(paymentId: string): string;
+}
 ```
 
-## 📜 Licença
+### Tratamento de Erros
+
+Erros de API sao capturados e exibidos ao usuario com mensagens contextuais:
+
+```typescript
+} catch (err) {
+  if (errorObj.status === 400) {
+    message = 'Codigo invalido ou acesso nao encontrado';
+  } else if (errorObj.message.includes('Payment')) {
+    message = 'Pagamento nao confirmado. Efetue o pagamento primeiro.';
+  }
+}
+```
+
+---
+
+## Licenca
 
 GNU General Public License v2.0
