@@ -37,11 +37,14 @@ public class CreatePaymentUseCase {
 
         paymentRepository.save(payment);
 
-        // Return PaymentInfo with the internal payment ID (not preference ID)
+        // Return PaymentInfo with the internal payment ID (not MP payment ID)
         return new PaymentInfo(
                 payment.getId(),
                 info.linkPayment(),
-                info.amount()
+                info.amount(),
+                info.qrCode(),
+                info.qrCodeBase64(),
+                info.ticketUrl()
         );
     }
 

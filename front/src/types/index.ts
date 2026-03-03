@@ -7,6 +7,9 @@ export interface PaymentResponse {
   amount: number;
   linkPayment: string;
   paymentId: string;
+  qrCode: string;
+  qrCodeBase64: string;
+  ticketUrl: string;
 }
 
 // Access types

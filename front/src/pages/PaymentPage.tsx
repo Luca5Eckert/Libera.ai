@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { apiClient } from '../api/client';
 import { usePaymentStream } from '../hooks/usePaymentStream';
 import type { PaymentResponse } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { StatusBadge } from '../components/StatusBadge';
+import { CopyButton } from '../components/CopyButton';
 import { formatCurrency } from '../utils/date';
 
 export function PaymentPage() {
@@ -11,18 +12,8 @@ export function PaymentPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [payment, setPayment] = useState<PaymentResponse | null>(null);
-  const [waitingPayment, setWaitingPayment] = useState(false);
 
   const { status, isApproved, reconnect } = usePaymentStream(payment?.paymentId ?? null);
-
-  // Effect to automatically redirect to Mercado Pago when payment is created
-  useEffect(() => {
-    if (payment?.linkPayment && !waitingPayment) {
-      // Open Mercado Pago checkout in a new tab
-      window.open(payment.linkPayment, '_blank');
-      setWaitingPayment(true);
-    }
-  }, [payment, waitingPayment]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,17 +38,10 @@ export function PaymentPage() {
     }
   };
 
-  const handleOpenCheckout = () => {
-    if (payment?.linkPayment) {
-      window.open(payment.linkPayment, '_blank');
-    }
-  };
-
   const handleReset = () => {
     setPayment(null);
     setAccessCode('');
     setError(null);
-    setWaitingPayment(false);
   };
 
   // Initial form view
@@ -114,18 +98,18 @@ export function PaymentPage() {
     );
   }
 
-  // Payment view - waiting for Checkout Pro completion
+  // Payment view - PIX QR Code
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center p-4">
       <div className="card w-full max-w-md">
         <header className="text-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight text-black">
-            {isApproved ? 'Pagamento Aprovado!' : 'Aguardando Pagamento'}
+            {isApproved ? 'Pagamento Aprovado!' : 'Pague com PIX'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             {isApproved 
               ? 'Você já pode liberar a saída' 
-              : 'Complete o pagamento na aba do Mercado Pago'}
+              : 'Escaneie o QR Code ou copie o código PIX'}
           </p>
         </header>
 
@@ -142,22 +126,41 @@ export function PaymentPage() {
           <p className="text-3xl font-bold text-black">{formatCurrency(payment.amount)}</p>
         </div>
 
-        {/* Waiting animation */}
+        {/* PIX QR Code */}
         {!isApproved && (
           <div className="flex flex-col items-center gap-4 mb-6">
-            <div className="p-4 bg-white border-2 border-gray-200 rounded-xl">
-              <div className="w-48 h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-sm text-gray-500">Aguardando confirmação...</p>
+            {payment.qrCodeBase64 && (
+              <div className="p-4 bg-white border-2 border-gray-200 rounded-xl">
+                <img
+                  src={`data:image/png;base64,${payment.qrCodeBase64}`}
+                  alt="QR Code PIX"
+                  className="w-48 h-48"
+                />
+              </div>
+            )}
+
+            {/* Copia e Cola */}
+            {payment.qrCode && (
+              <div className="w-full space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 text-center">
+                  PIX Copia e Cola
+                </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs text-gray-600 break-all text-center mb-2 line-clamp-2">
+                    {payment.qrCode}
+                  </p>
+                  <div className="flex justify-center">
+                    <CopyButton text={payment.qrCode} />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Button to re-open checkout */}
-            <button onClick={handleOpenCheckout} className="btn-secondary text-sm">
-              Abrir Checkout Novamente
-            </button>
+            {/* Loading indicator */}
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <LoadingSpinner size="sm" />
+              <span>Aguardando confirmação do pagamento...</span>
+            </div>
           </div>
         )}
 

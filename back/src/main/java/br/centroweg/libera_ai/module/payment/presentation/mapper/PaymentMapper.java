@@ -11,7 +11,10 @@ public class PaymentMapper {
         return new PaymentResponse(
                 paymentInfo.amount(),
                 paymentInfo.linkPayment(),
-                paymentInfo.generatedPaymentId()
+                paymentInfo.generatedPaymentId(),
+                paymentInfo.qrCode(),
+                paymentInfo.qrCodeBase64(),
+                paymentInfo.ticketUrl()
         );
     }
 

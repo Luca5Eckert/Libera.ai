@@ -5,26 +5,21 @@ import br.centroweg.libera_ai.module.payment.domain.port.PaymentProvider;
 import br.centroweg.libera_ai.module.payment.infrastructure.exception.PaymentIntegrationException;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
-import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
-import com.mercadopago.client.preference.PreferenceClient;
-import com.mercadopago.client.preference.PreferenceItemRequest;
-import com.mercadopago.client.preference.PreferencePayerRequest;
-import com.mercadopago.client.preference.PreferenceRequest;
+import com.mercadopago.client.payment.PaymentCreateRequest;
+import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.resources.payment.Payment;
-import com.mercadopago.resources.preference.Preference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 
 /**
- * Mercado Pago payment provider implementation using Checkout Pro.
+ * Mercado Pago payment provider implementation using direct PIX payment.
  * 
  * Security notes:
  * - Access token is loaded from environment variables (never hardcoded)
@@ -37,7 +32,6 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
     private static final Logger log = LoggerFactory.getLogger(MercadoPagoPaymentProvider.class);
 
     private final PaymentClient paymentClient;
-    private final PreferenceClient preferenceClient;
     private final String accessToken;
     private final String notificationUrl;
     private final String defaultPayerEmail;
@@ -47,7 +41,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
             @Value("${mercadopago.notification-url:}") String notificationUrl,
             @Value("${mercadopago.default-payer-email:}") String defaultPayerEmail) {
 
-        log.info("[MP-PROVIDER] Initializing Mercado Pago Payment Provider (Checkout Pro)");
+        log.info("[MP-PROVIDER] Initializing Mercado Pago Payment Provider (PIX)");
 
         // Validate access token is present
         if (accessToken == null || accessToken.isBlank()) {
@@ -60,8 +54,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
             log.info("[MP-PROVIDER] Using TEST credentials (sandbox mode)");
             if (defaultPayerEmail == null || defaultPayerEmail.isBlank()) {
                 log.warn("[MP-PROVIDER] TEST mode detected but no default payer email configured. " +
-                        "Set MP_DEFAULT_PAYER_EMAIL to a test buyer account to avoid 'Uma das partes é de teste' errors. " +
-                        "The test buyer must be created in the Mercado Pago Developer Panel.");
+                        "Set MP_DEFAULT_PAYER_EMAIL to a test buyer account to avoid errors.");
             }
         } else if (accessToken.startsWith("APP_USR-")) {
             log.info("[MP-PROVIDER] Using LIVE credentials (production mode)");
@@ -72,7 +65,6 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
         MercadoPagoConfig.setAccessToken(accessToken);
         this.accessToken = accessToken;
         this.paymentClient = new PaymentClient();
-        this.preferenceClient = new PreferenceClient();
         this.notificationUrl = notificationUrl;
         this.defaultPayerEmail = defaultPayerEmail;
 
@@ -85,7 +77,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
 
     @Override
     public PaymentInfo generatePayment(double amount, String internalPaymentId) {
-        log.info("[MP-PROVIDER] Generating payment preference - Amount: R$ {}, Internal ID: {}", amount, internalPaymentId);
+        log.info("[MP-PROVIDER] Generating PIX payment - Amount: R$ {}, Internal ID: {}", amount, internalPaymentId);
 
         try {
             // Validate inputs
@@ -96,66 +88,62 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                 throw new PaymentIntegrationException("Internal payment ID is required");
             }
 
-            PreferenceItemRequest item = PreferenceItemRequest.builder()
-                    .title("Estacionamento Libera.ai")
-                    .description("Pagamento de estadia - Libera.ai")
-                    .quantity(1)
-                    .unitPrice(BigDecimal.valueOf(amount))
-                    .currencyId("BRL")
-                    .build();
+            String payerEmail = (defaultPayerEmail != null && !defaultPayerEmail.isBlank())
+                    ? defaultPayerEmail
+                    : "pagamento@liberaai.com";
 
-            PreferenceRequest.PreferenceRequestBuilder builder = PreferenceRequest.builder()
-                    .items(Collections.singletonList(item))
+            PaymentCreateRequest createRequest = PaymentCreateRequest.builder()
+                    .transactionAmount(BigDecimal.valueOf(amount))
+                    .description("Estacionamento Libera.ai")
+                    .paymentMethodId("pix")
                     .externalReference(internalPaymentId)
-                    .binaryMode(false)
-                    .notificationUrl(notificationUrl.isEmpty() ? null : notificationUrl)
-                    .backUrls(PreferenceBackUrlsRequest.builder()
-                            .success("https://seu-app.com/success")
-                            .failure("https://seu-app.com/failure")
-                            .pending("https://seu-app.com/pending")
+                    .notificationUrl(notificationUrl != null && !notificationUrl.isEmpty() ? notificationUrl : null)
+                    .payer(PaymentPayerRequest.builder()
+                            .email(payerEmail)
                             .build())
-                    .autoReturn("approved");
-
-            if (defaultPayerEmail != null && !defaultPayerEmail.isBlank()) {
-                builder.payer(PreferencePayerRequest.builder()
-                        .email(defaultPayerEmail)
-                        .build());
-                log.info("[MP-PROVIDER] Payer email set on preference (test buyer configured)");
-            }
+                    .build();
 
             MPRequestOptions requestOptions = MPRequestOptions.builder()
                     .accessToken(accessToken)
                     .build();
 
-            Preference preference = preferenceClient.create(builder.build(), requestOptions);
+            Payment payment = paymentClient.create(createRequest, requestOptions);
 
-            log.info("[MP-PROVIDER] Preference created successfully - Preference ID: {}, External Reference: {}, Init Point: {}", 
-                    preference.getId(), internalPaymentId, preference.getInitPoint());
+            String qrCode = null;
+            String qrCodeBase64 = null;
+            String ticketUrl = null;
+
+            if (payment.getPointOfInteraction() != null 
+                    && payment.getPointOfInteraction().getTransactionData() != null) {
+                qrCode = payment.getPointOfInteraction().getTransactionData().getQrCode();
+                qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+                ticketUrl = payment.getPointOfInteraction().getTransactionData().getTicketUrl();
+            }
+
+            log.info("[MP-PROVIDER] PIX payment created successfully - MP Payment ID: {}, External Reference: {}", 
+                    payment.getId(), internalPaymentId);
 
             return new PaymentInfo(
-                    preference.getId(),
-                    preference.getInitPoint(),
-                    amount
+                    String.valueOf(payment.getId()),
+                    ticketUrl,
+                    amount,
+                    qrCode,
+                    qrCodeBase64,
+                    ticketUrl
             );
 
         } catch (MPApiException e) {
             String errorContent = getApiResponseContent(e);
-            log.error("[MP-PROVIDER] Mercado Pago API error creating preference - Status: {}, Content: {}", 
+            log.error("[MP-PROVIDER] Mercado Pago API error creating PIX payment - Status: {}, Content: {}", 
                     e.getStatusCode(), errorContent);
-            if (errorContent.contains("teste") || errorContent.contains("test")) {
-                log.error("[MP-PROVIDER] Test/production identity mismatch detected. Possible causes: " +
-                        "1) Buyer is not a test account (create one in MP Developer Panel), " +
-                        "2) Seller credentials mismatch (TEST- vs APP_USR-), " +
-                        "3) Payer email is the same as the seller account (not allowed).");
-            }
-            throw new PaymentIntegrationException(buildMercadoPagoErrorMessage("create preference", e), e);
+            throw new PaymentIntegrationException(buildMercadoPagoErrorMessage("create PIX payment", e), e);
         } catch (MPException e) {
             log.error("[MP-PROVIDER] Mercado Pago SDK error: {}", e.getMessage(), e);
-            throw new PaymentIntegrationException("Failed to create payment preference: " + e.getMessage(), e);
+            throw new PaymentIntegrationException("Failed to create PIX payment: " + e.getMessage(), e);
         } catch (PaymentIntegrationException e) {
             throw e;
         } catch (Exception e) {
-            log.error("[MP-PROVIDER] Unexpected error creating preference: {}", e.getMessage(), e);
+            log.error("[MP-PROVIDER] Unexpected error creating PIX payment: {}", e.getMessage(), e);
             throw new PaymentIntegrationException("Unexpected error creating payment: " + e.getMessage(), e);
         }
     }
