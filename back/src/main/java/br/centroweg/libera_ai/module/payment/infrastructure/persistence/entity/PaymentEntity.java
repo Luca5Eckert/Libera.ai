@@ -35,6 +35,10 @@ public class PaymentEntity {
 
     private String externalId;
 
+    private String lastProcessedMpPaymentId;
+
+    private String paymentStatus;
+
     public PaymentEntity(AccessEntity access, double amount, boolean paid, String externalId) {
         this.access = access;
         this.amount = amount;
@@ -43,12 +47,15 @@ public class PaymentEntity {
     }
 
     public static PaymentEntity of(Payment payment) {
-        return new PaymentEntity(
+        PaymentEntity entity = new PaymentEntity(
                 AccessEntity.of(payment.getAccess()),
                 payment.getAmount(),
                 payment.isPaid(),
                 payment.getExternalId()
         );
+        entity.setLastProcessedMpPaymentId(payment.getLastProcessedMpPaymentId());
+        entity.setPaymentStatus(payment.getPaymentStatus());
+        return entity;
     }
 
     public Payment toDomain() {
@@ -57,7 +64,9 @@ public class PaymentEntity {
                 this.access.toDomain(),
                 this.amount,
                 this.paid,
-                this.externalId
+                this.externalId,
+                this.lastProcessedMpPaymentId,
+                this.paymentStatus
         );
     }
 }
