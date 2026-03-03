@@ -9,6 +9,7 @@ import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.resources.payment.Payment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,38 +23,50 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
 
     private static final Logger log = LoggerFactory.getLogger(MercadoPagoPaymentProvider.class);
     private final PaymentClient paymentClient;
+    private final String accessToken;
     private final String defaultEmail;
+    private final String notificationUrl;
 
     public MercadoPagoPaymentProvider(
             @Value("${mercadopago.access-token}") String accessToken,
-            @Value("${mercadopago.default-payer-email}") String defaultEmail) {
+            @Value("${mercadopago.default-payer-email}") String defaultEmail,
+            @Value("${mercadopago.notification-url:}") String notificationUrl) {
 
         log.info("Iniciando MercadoPagoPaymentProvider...");
         log.info("Token injetado: {}", accessToken);
         log.info("E-mail do pagador injetado: {}", defaultEmail);
+        log.info("Notification URL: {}", notificationUrl.isEmpty() ? "(não configurada)" : notificationUrl);
 
         MercadoPagoConfig.setAccessToken(accessToken);
+        this.accessToken = accessToken;
         this.paymentClient = new PaymentClient();
         this.defaultEmail = defaultEmail;
+        this.notificationUrl = notificationUrl;
     }
 
     @Override
     public PaymentInfo generatePayment(double amount) {
         try {
-            // Log antes da chamada
             log.info("Gerando pagamento PIX...");
-            log.debug("Token ativo no MercadoPagoConfig: {}", MercadoPagoConfig.getAccessToken());
             log.info("Enviando requisição para e-mail: {}", defaultEmail);
 
-            PaymentCreateRequest request = PaymentCreateRequest.builder()
+            MPRequestOptions requestOptions = MPRequestOptions.builder()
+                    .accessToken(accessToken)
+                    .build();
+
+            PaymentCreateRequest.PaymentCreateRequestBuilder builder = PaymentCreateRequest.builder()
                     .transactionAmount(BigDecimal.valueOf(amount))
+                    .description("Estacionamento Libera.ai")
                     .paymentMethodId("pix")
                     .payer(PaymentPayerRequest.builder()
                             .email(defaultEmail)
-                            .build())
-                    .build();
+                            .build());
 
-            Payment payment = paymentClient.create(request);
+            if (!notificationUrl.isEmpty()) {
+                builder.notificationUrl(notificationUrl);
+            }
+
+            Payment payment = paymentClient.create(builder.build(), requestOptions);
 
             log.info("Pagamento criado com sucesso! ID MP: {}", payment.getId());
 
@@ -75,8 +88,13 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
     public String fetchStatus(String externalId) {
         try {
             log.info("Buscando status do pagamento: {}", externalId);
+
+            MPRequestOptions requestOptions = MPRequestOptions.builder()
+                    .accessToken(accessToken)
+                    .build();
+
             Long mpId = Long.valueOf(externalId);
-            Payment payment = paymentClient.get(mpId);
+            Payment payment = paymentClient.get(mpId, requestOptions);
             log.info("Status retornado: {}", payment.getStatus());
             return payment.getStatus();
         } catch (MPApiException e) {
@@ -91,8 +109,9 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
         int statusCode = e.getStatusCode();
 
         if (statusCode == 401 && apiResponse.contains("Unauthorized use of live credentials")) {
-            return "Mercado Pago authentication error: You are using LIVE/production credentials in a test environment. " +
-                    "Please use TEST credentials (token starting with 'TEST-') for development and testing.";
+            return "Mercado Pago authentication error: Ensure the MP_ACCESS_TOKEN is a TEST token (starting with 'TEST-') " +
+                    "and MP_DEFAULT_PAYER_EMAIL is a test user created under the same Mercado Pago developer account. " +
+                    "Visit https://www.mercadopago.com.br/developers/panel/app to create matching test users.";
         }
 
         return String.format("Mercado Pago API error during %s (HTTP %d): %s", operation, statusCode, apiResponse);
