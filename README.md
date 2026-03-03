@@ -16,84 +16,84 @@
 
 ---
 
-## Indice
+## Índice
 
 - [Problema](#problema)
-- [Solucao](#solucao)
+- [Solução](#solução)
 - [Fluxo do Sistema](#fluxo-do-sistema)
 - [Tecnologias e Justificativas](#tecnologias-e-justificativas)
 - [Arquitetura do Sistema](#arquitetura-do-sistema)
-- [Estrutura do Repositorio](#estrutura-do-repositorio)
-- [Configuracao e Instalacao](#configuracao-e-instalacao)
-- [Documentacao Tecnica Detalhada](#documentacao-tecnica-detalhada)
-- [Licenca](#licenca)
+- [Estrutura do Repositório](#estrutura-do-repositório)
+- [Configuração e Instalação](#configuração-e-instalação)
+- [Documentação Técnica Detalhada](#documentação-técnica-detalhada)
+- [Licença](#licença)
 
 ---
 
 ## Problema
 
-Estacionamentos comerciais enfrentam diversos desafios operacionais que impactam diretamente a experiencia do usuario e a eficiencia do negocio:
+Estacionamentos comerciais enfrentam diversos desafios operacionais que impactam diretamente a experiência do usuário e a eficiência do negócio:
 
 **Processos Manuais e Lentos**
-- Cobranca manual de tarifas propensa a erros de calculo
-- Filas longas nos caixas de pagamento, especialmente em horarios de pico
-- Necessidade de operadores humanos para cada transacao
+- Cobrança manual de tarifas propensa a erros de cálculo
+- Filas longas nos caixas de pagamento, especialmente em horários de pico
+- Necessidade de operadores humanos para cada transação
 
 **Controle de Acesso Ineficiente**
 - Cancelas operadas manualmente ou com sistemas desconectados
-- Impossibilidade de rastrear tempo real de permanencia
-- Falta de integracao entre entrada, permanencia e saida
+- Impossibilidade de rastrear tempo real de permanência
+- Falta de integração entre entrada, permanência e saída
 
-**Metodos de Pagamento Limitados**
-- Dependencia de dinheiro ou cartao fisico
+**Métodos de Pagamento Limitados**
+- Dependência de dinheiro ou cartão físico
 - Dificuldade em adotar pagamentos digitais modernos como PIX
-- Processos de conciliacao financeira complexos
+- Processos de conciliação financeira complexos
 
 **Sistemas Legados**
-- Solucoes antigas dificeis de escalar e manter
-- Integracao complexa com novos dispositivos IoT
-- Falta de visibilidade em tempo real das operacoes
+- Soluções antigas difíceis de escalar e manter
+- Integração complexa com novos dispositivos IoT
+- Falta de visibilidade em tempo real das operações
 
 ---
 
-## Solucao
+## Solução
 
-O **Libera.ai** e uma plataforma completa que automatiza todo o ciclo operacional do estacionamento, desde a deteccao da entrada ate a liberacao da saida com pagamento validado.
+O **Libera.ai** é uma plataforma completa que automatiza todo o ciclo operacional do estacionamento, desde a detecção da entrada até a liberação da saída com pagamento validado.
 
-O sistema utiliza sensores IoT (ESP32) para detectar veiculos automaticamente, comunicacao MQTT para transmissao de dados em tempo real, processamento de pagamentos via PIX com o Mercado Pago, e uma interface web responsiva para interacao do usuario.
+O sistema utiliza sensores IoT (ESP32) para detectar veículos automaticamente, comunicação MQTT para transmissão de dados em tempo real, processamento de pagamentos via PIX com o Mercado Pago, e uma interface web responsiva para interação do usuário.
 
-### Componentes da Solucao
+### Componentes da Solução
 
-| Componente | Funcao | Tecnologia Principal |
+| Componente | Função | Tecnologia Principal |
 |------------|--------|----------------------|
-| **Deteccao de Entrada** | Sensores identificam veiculos e geram codigo unico | ESP32 + Sensor |
-| **Comunicacao IoT** | Transmissao de eventos entre dispositivos | MQTT + Broker Publico |
-| **Orquestracao** | Recebe eventos MQTT e interage com backend | Node-RED |
-| **Backend API** | Logica de negocio e integracao de pagamentos | Spring Boot + WebFlux |
-| **Pagamentos** | Geracao de QR Code PIX e confirmacao | Mercado Pago SDK |
-| **Interface Web** | Terminal de pagamento e liberacao de saida | React + TypeScript |
-| **Banco de Dados** | Persistencia de acessos e pagamentos | MySQL |
+| **Detecção de Entrada** | Sensores identificam veículos e geram código único | ESP32 + Sensor |
+| **Comunicação IoT** | Transmissão de eventos entre dispositivos | MQTT + Broker Público |
+| **Orquestração** | Recebe eventos MQTT e interage com backend | Node-RED |
+| **Backend API** | Lógica de negócio e integração de pagamentos | Spring Boot + WebFlux |
+| **Pagamentos** | Geração de QR Code PIX e confirmação | Mercado Pago SDK |
+| **Interface Web** | Terminal de pagamento e liberação de saída | React + TypeScript |
+| **Banco de Dados** | Persistência de acessos e pagamentos | MySQL |
 
 ### Diferenciais
 
-- **Pagamento PIX**: Metodo de pagamento instantaneo e sem taxas para o usuario
-- **Tempo Real**: Atualizacoes de status via Server-Sent Events (SSE)
-- **Automacao Completa**: Desde a deteccao ate a liberacao sem intervencao humana
-- **Arquitetura Moderna**: Clean Architecture e DDD para escalabilidade e manutencao
+- **Pagamento PIX**: Método de pagamento instantâneo e sem taxas para o usuário
+- **Tempo Real**: Atualizações de status via Server-Sent Events (SSE)
+- **Automação Completa**: Desde a detecção até a liberação sem intervenção humana
+- **Arquitetura Moderna**: Clean Architecture e DDD para escalabilidade e manutenção
 
 ---
 
 ## Fluxo do Sistema
 
-O sistema opera em um ciclo completo que vai desde a deteccao de entrada do veiculo ate a liberacao de saida apos pagamento confirmado.
+O sistema opera em um ciclo completo que vai desde a detecção de entrada do veículo até a liberação de saída após pagamento confirmado.
 
 ### Diagrama de Fluxo Completo
 
 ```mermaid
 sequenceDiagram
-    actor User as Usuario/Veiculo
+    actor User as Usuário/Veículo
     participant ESP as ESP32<br/>(Sensor)
-    participant MQTT as Broker MQTT<br/>(Publico)
+    participant MQTT as Broker MQTT<br/>(Público)
     participant NodeRED as Node-RED<br/>(Orquestrador)
     participant API as Backend API<br/>(Spring Boot)
     participant DB as MySQL<br/>Database
@@ -101,17 +101,17 @@ sequenceDiagram
     participant Web as Interface Web<br/>(Terminal)
 
     Note over User,Web: FASE 1: ENTRADA NO ESTACIONAMENTO
-    User->>ESP: Veiculo detectado pelo sensor
-    ESP->>ESP: Gera codigo unico (primeira deteccao)
-    ESP->>MQTT: Publica codigo via MQTT
+    User->>ESP: Veículo detectado pelo sensor
+    ESP->>ESP: Gera código único (primeira detecção)
+    ESP->>MQTT: Publica código via MQTT
     MQTT->>NodeRED: Entrega mensagem
     NodeRED->>DB: INSERT access_record (code, entry_time)
     
-    Note over User,Web: FASE 2: PERMANENCIA
-    User->>User: Veiculo estacionado (tempo sendo contado)
+    Note over User,Web: FASE 2: PERMANÊNCIA
+    User->>User: Veículo estacionado (tempo sendo contado)
     
     Note over User,Web: FASE 3: PAGAMENTO
-    User->>Web: Acessa terminal e insere codigo
+    User->>Web: Acessa terminal e insere código
     Web->>API: POST /payments {accessCode}
     API->>DB: SELECT access WHERE code = ?
     DB-->>API: Retorna registro de entrada
@@ -122,8 +122,8 @@ sequenceDiagram
     API-->>Web: {qrCode, amount, paymentId}
     Web->>User: Exibe QR Code PIX
 
-    Note over User,Web: FASE 4: CONFIRMACAO DE PAGAMENTO
-    User->>MP: Escaneia e paga via app bancario
+    Note over User,Web: FASE 4: CONFIRMAÇÃO DE PAGAMENTO
+    User->>MP: Escaneia e paga via app bancário
     MP->>API: Webhook: pagamento confirmado
     API->>DB: UPDATE payment SET paid = true
     
@@ -135,8 +135,8 @@ sequenceDiagram
     end
     Web->>User: Notifica: Pagamento Aprovado
 
-    Note over User,Web: FASE 6: LIBERACAO DE SAIDA
-    User->>Web: Solicita liberacao com codigo
+    Note over User,Web: FASE 6: LIBERAÇÃO DE SAÍDA
+    User->>Web: Solicita liberação com código
     Web->>API: PUT /access/exit {code}
     API->>DB: Valida pagamento confirmado
     DB-->>API: Pagamento OK
@@ -150,63 +150,63 @@ sequenceDiagram
 
 ### Detalhamento das Fases
 
-| Fase | Descricao | Componentes Envolvidos |
+| Fase | Descrição | Componentes Envolvidos |
 |------|-----------|------------------------|
-| **1. Entrada** | Sensor ESP32 detecta veiculo e gera codigo unico. Codigo e publicado via MQTT e Node-RED insere no banco de dados. | ESP32, MQTT Broker, Node-RED, MySQL |
-| **2. Permanencia** | Veiculo permanece no estacionamento. Sistema registra tempo de entrada para calculo posterior. | MySQL |
-| **3. Pagamento** | Usuario insere codigo no terminal web. Sistema calcula valor baseado no tempo e gera QR Code PIX via Mercado Pago. | Frontend, Backend, Mercado Pago |
-| **4. Confirmacao** | Usuario paga via PIX. Mercado Pago envia webhook ao backend confirmando pagamento. | Mercado Pago, Backend, MySQL |
-| **5. Monitoramento** | Frontend mantem conexao SSE com backend, recebendo atualizacoes em tempo real sobre status do pagamento. | Frontend, Backend (WebFlux) |
-| **6. Liberacao** | Usuario solicita saida. Backend valida pagamento e envia comando via HTTP para Node-RED, que publica via MQTT para ESP32 abrir a cancela. | Frontend, Backend, Node-RED, MQTT, ESP32 |
+| **1. Entrada** | Sensor ESP32 detecta veículo e gera código único. Código é publicado via MQTT e Node-RED insere no banco de dados. | ESP32, MQTT Broker, Node-RED, MySQL |
+| **2. Permanência** | Veículo permanece no estacionamento. Sistema registra tempo de entrada para cálculo posterior. | MySQL |
+| **3. Pagamento** | Usuário insere código no terminal web. Sistema calcula valor baseado no tempo e gera QR Code PIX via Mercado Pago. | Frontend, Backend, Mercado Pago |
+| **4. Confirmação** | Usuário paga via PIX. Mercado Pago envia webhook ao backend confirmando pagamento. | Mercado Pago, Backend, MySQL |
+| **5. Monitoramento** | Frontend mantém conexão SSE com backend, recebendo atualizações em tempo real sobre status do pagamento. | Frontend, Backend (WebFlux) |
+| **6. Liberação** | Usuário solicita saída. Backend valida pagamento e envia comando via HTTP para Node-RED, que publica via MQTT para ESP32 abrir a cancela. | Frontend, Backend, Node-RED, MQTT, ESP32 |
 
 ---
 
 ## Tecnologias e Justificativas
 
-A escolha de cada tecnologia foi baseada em requisitos tecnicos e limitacoes do projeto academico.
+A escolha de cada tecnologia foi baseada em requisitos técnicos e limitações do projeto acadêmico.
 
 ### Backend
 
 | Tecnologia | Justificativa |
 |------------|---------------|
-| **Java 21** | Linguagem robusta com Virtual Threads para alta concorrencia. Ecossistema maduro e ampla documentacao. |
-| **Spring Boot 3.5** | Framework padrao de mercado para APIs REST. Facilita configuracao e integracao com banco de dados e servicos externos. |
-| **Spring WebFlux** | Suporte nativo a Server-Sent Events (SSE) para atualizacoes em tempo real sem polling constante do cliente. |
-| **MySQL 8.0** | Banco de dados relacional confiavel. Ideal para dados transacionais como acessos e pagamentos. |
-| **Mercado Pago SDK** | SDK oficial para integracao PIX. Suporte a QR Code dinamico e webhooks para notificacao de pagamento. |
+| **Java 21** | Linguagem robusta com Virtual Threads para alta concorrência. Ecossistema maduro e ampla documentação. |
+| **Spring Boot 3.5** | Framework padrão de mercado para APIs REST. Facilita configuração e integração com banco de dados e serviços externos. |
+| **Spring WebFlux** | Suporte nativo a Server-Sent Events (SSE) para atualizações em tempo real sem polling constante do cliente. |
+| **MySQL 8.0** | Banco de dados relacional confiável. Ideal para dados transacionais como acessos e pagamentos. |
+| **Mercado Pago SDK** | SDK oficial para integração PIX. Suporte a QR Code dinâmico e webhooks para notificação de pagamento. |
 
 ### Frontend
 
 | Tecnologia | Justificativa |
 |------------|---------------|
 | **React 19** | Biblioteca moderna para interfaces reativas. Facilita gerenciamento de estado durante fluxo de pagamento. |
-| **TypeScript** | Tipagem estatica previne erros em tempo de desenvolvimento. Melhora manutencao do codigo. |
-| **Vite** | Build tool rapida com hot reload. Melhora produtividade durante desenvolvimento. |
-| **TailwindCSS 4** | Estilizacao utilitaria permite desenvolvimento rapido de interface responsiva sem CSS customizado extenso. |
+| **TypeScript** | Tipagem estática previne erros em tempo de desenvolvimento. Melhora manutenção do código. |
+| **Vite** | Build tool rápida com hot reload. Melhora produtividade durante desenvolvimento. |
+| **TailwindCSS 4** | Estilização utilitária permite desenvolvimento rápido de interface responsiva sem CSS customizado extenso. |
 
-### IoT e Comunicacao
+### IoT e Comunicação
 
 | Tecnologia | Justificativa |
 |------------|---------------|
-| **ESP32** | Microcontrolador com WiFi integrado. Baixo custo e amplamente usado em projetos IoT academicos. |
-| **MQTT** | Protocolo leve ideal para IoT. Comunicacao assíncrona entre dispositivos com baixo consumo de recursos. |
-| **Broker Publico** | Elimina necessidade de infraestrutura propria para o projeto academico. |
-| **Node-RED** | Ferramenta visual para orquestracao de fluxos IoT. Conecta MQTT ao backend sem necessidade de codigo complexo. |
+| **ESP32** | Microcontrolador com WiFi integrado. Baixo custo e amplamente usado em projetos IoT acadêmicos. |
+| **MQTT** | Protocolo leve ideal para IoT. Comunicação assíncrona entre dispositivos com baixo consumo de recursos. |
+| **Broker Público** | Elimina necessidade de infraestrutura própria para o projeto acadêmico. |
+| **Node-RED** | Ferramenta visual para orquestração de fluxos IoT. Conecta MQTT ao backend sem necessidade de código complexo. |
 
 ### Infraestrutura
 
 | Tecnologia | Justificativa |
 |------------|---------------|
-| **Docker** | Containerizacao garante ambiente consistente entre desenvolvimento e producao. |
-| **Docker Compose** | Orquestracao simples de multiplos containers (frontend, backend, banco). |
+| **Docker** | Containerização garante ambiente consistente entre desenvolvimento e produção. |
+| **Docker Compose** | Orquestração simples de múltiplos containers (frontend, backend, banco). |
 
 ---
 
 ## Arquitetura do Sistema
 
-O backend foi projetado seguindo principios de **Clean Architecture** e **Domain-Driven Design (DDD)**, organizando o codigo em bounded contexts independentes.
+O backend foi projetado seguindo princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**, organizando o código em bounded contexts independentes.
 
-### Visao Geral
+### Visão Geral
 
 ```mermaid
 flowchart TB
@@ -216,22 +216,22 @@ flowchart TB
         NodeRED["Node-RED"]
     end
     
-    subgraph Frontend["Camada de Apresentacao"]
+    subgraph Frontend["Camada de Apresentação"]
         WEB["React + TypeScript"]
     end
     
-    subgraph Backend["Camada de Aplicacao - Spring Boot"]
+    subgraph Backend["Camada de Aplicação - Spring Boot"]
         CTRL["Controllers REST"]
         UC["Use Cases"]
         DOMAIN["Domain Models"]
         INFRA["Infrastructure"]
     end
     
-    subgraph External["Servicos Externos"]
+    subgraph External["Serviços Externos"]
         MP["Mercado Pago"]
     end
     
-    subgraph Storage["Persistencia"]
+    subgraph Storage["Persistência"]
         DB[("MySQL")]
     end
     
@@ -252,14 +252,14 @@ flowchart TB
 
 | Camada | Responsabilidade |
 |--------|------------------|
-| **Presentation** | Controllers REST, DTOs, validacao de entrada |
-| **Application** | Use Cases que orquestram logica de negocio |
-| **Domain** | Entidades e regras de negocio puras |
-| **Infrastructure** | Repositorios JPA, integracao Mercado Pago, comunicacao Node-RED |
+| **Presentation** | Controllers REST, DTOs, validação de entrada |
+| **Application** | Use Cases que orquestram lógica de negócio |
+| **Domain** | Entidades e regras de negócio puras |
+| **Infrastructure** | Repositórios JPA, integração Mercado Pago, comunicação Node-RED |
 
 ---
 
-## Estrutura do Repositorio
+## Estrutura do Repositório
 
 ```
 Libera.ai/
@@ -267,52 +267,52 @@ Libera.ai/
 │   ├── src/
 │   │   └── main/java/br/centroweg/libera_ai/
 │   │       ├── module/
-│   │       │   ├── access/           # Modulo de Controle de Acesso
+│   │       │   ├── access/           # Módulo de Controle de Acesso
 │   │       │   │   ├── presentation/    # Controllers, DTOs
 │   │       │   │   ├── application/     # Use Cases
 │   │       │   │   ├── domain/          # Entidades, Portas
-│   │       │   │   └── infrastructure/  # Repositorios, Adaptadores
+│   │       │   │   └── infrastructure/  # Repositórios, Adaptadores
 │   │       │   │
-│   │       │   └── payment/          # Modulo de Pagamentos
+│   │       │   └── payment/          # Módulo de Pagamentos
 │   │       │       ├── presentation/    # Controllers, DTOs
 │   │       │       ├── application/     # Use Cases
 │   │       │       ├── domain/          # Entidades, Portas
-│   │       │       └── infrastructure/  # Repositorios, Mercado Pago
+│   │       │       └── infrastructure/  # Repositórios, Mercado Pago
 │   │       │
-│   │       └── share/            # Codigo compartilhado
+│   │       └── share/            # Código compartilhado
 │   │
 │   ├── Dockerfile
 │   ├── compose.yml
 │   ├── pom.xml
-│   └── README.md                 # Documentacao tecnica do backend
+│   └── README.md                 # Documentação técnica do backend
 │
 ├── front/                        # Frontend - Interface Web
 │   ├── src/
 │   │   ├── api/                  # Cliente API
 │   │   ├── components/           # Componentes React
 │   │   ├── hooks/                # Hooks customizados (SSE)
-│   │   ├── pages/                # Paginas da aplicacao
+│   │   ├── pages/                # Páginas da aplicação
 │   │   └── types/                # Tipos TypeScript
 │   │
 │   ├── Dockerfile
 │   ├── package.json
-│   └── README.md                 # Documentacao tecnica do frontend
+│   └── README.md                 # Documentação técnica do frontend
 │
-├── docker-compose.yml            # Orquestracao completa
+├── docker-compose.yml            # Orquestração completa
 └── README.md                     # Este arquivo
 ```
 
 ---
 
-## Configuracao e Instalacao
+## Configuração e Instalação
 
-### Pre-requisitos
+### Pré-requisitos
 
 - Docker 20+ e Docker Compose 1.29+
 - Token de acesso do Mercado Pago ([obter aqui](https://www.mercadopago.com.br/developers))
-- Node-RED configurado com broker MQTT (para integracao IoT completa)
+- Node-RED configurado com broker MQTT (para integração IoT completa)
 
-### Configuracao de Variaveis de Ambiente
+### Configuração de Variáveis de Ambiente
 
 Crie o arquivo `.env` na raiz do projeto:
 
@@ -331,10 +331,10 @@ NODE_HOST=172.17.0.1
 NODE_PORT=1880
 ```
 
-### Execucao com Docker Compose
+### Execução com Docker Compose
 
 ```bash
-# Iniciar todos os servicos
+# Iniciar todos os serviços
 docker compose up -d --build
 
 # Verificar status
@@ -344,42 +344,42 @@ docker compose ps
 docker compose logs -f
 ```
 
-### Endpoints Disponiveis
+### Endpoints Disponíveis
 
-| Servico | URL | Descricao |
+| Serviço | URL | Descrição |
 |---------|-----|-----------|
 | Frontend | http://localhost:3000 | Interface web do terminal |
 | Backend API | http://localhost:8080 | API REST |
-| Health Check | http://localhost:8080/actuator/health | Status da aplicacao |
+| Health Check | http://localhost:8080/actuator/health | Status da aplicação |
 
-### Variaveis de Ambiente
+### Variáveis de Ambiente
 
-| Variavel | Descricao |
+| Variável | Descrição |
 |----------|-----------|
 | `DB_ROOT_PASSWORD` | Senha root do MySQL |
 | `DB_NAME` | Nome do banco de dados |
-| `DB_USER` | Usuario do banco |
-| `DB_PASSWORD` | Senha do usuario |
+| `DB_USER` | Usuário do banco |
+| `DB_PASSWORD` | Senha do usuário |
 | `MERCADOPAGO_ACCESS_TOKEN` | Token de acesso Mercado Pago |
 | `NODE_HOST` | Host do Node-RED |
 | `NODE_PORT` | Porta do Node-RED |
 
 ---
 
-## Documentacao Tecnica Detalhada
+## Documentação Técnica Detalhada
 
-Para informacoes tecnicas detalhadas sobre cada componente, consulte:
+Para informações técnicas detalhadas sobre cada componente, consulte:
 
-- **[Backend README](./back/README.md)**: Arquitetura, endpoints, integracao Mercado Pago, decisoes tecnicas
-- **[Frontend README](./front/README.md)**: Componentes React, hooks SSE, integracao com API
+- **[Backend README](./back/README.md)**: Arquitetura, endpoints, integração Mercado Pago, decisões técnicas
+- **[Frontend README](./front/README.md)**: Componentes React, hooks SSE, integração com API
 
 ---
 
-## Licenca
+## Licença
 
-Este projeto esta licenciado sob a **GNU General Public License v2.0**.
+Este projeto está licenciado sob a **GNU General Public License v2.0**.
 
-A GPL v2.0 garante aos usuarios as liberdades de usar, estudar, compartilhar e modificar o software. Para mais detalhes, consulte o arquivo [LICENSE](LICENSE).
+A GPL v2.0 garante aos usuários as liberdades de usar, estudar, compartilhar e modificar o software. Para mais detalhes, consulte o arquivo [LICENSE](LICENSE).
 
 ---
 
@@ -387,4 +387,4 @@ A GPL v2.0 garante aos usuarios as liberdades de usar, estudar, compartilhar e m
 
 **Centro WEG**
 
-Projeto academico desenvolvido com foco em arquitetura limpa, integracao IoT e boas praticas de engenharia de software.
+Projeto acadêmico desenvolvido com foco em arquitetura limpa, integração IoT e boas práticas de engenharia de software.

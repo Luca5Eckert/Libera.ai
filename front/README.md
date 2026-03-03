@@ -1,70 +1,70 @@
 # Libera.ai - Frontend
 
-Interface web para o sistema de estacionamento Libera.ai, construida com React, TypeScript, Vite e TailwindCSS.
+Interface web para o sistema de estacionamento Libera.ai, construída com React, TypeScript, Vite e TailwindCSS.
 
 ---
 
-## Indice
+## Índice
 
-- [Visao Geral](#visao-geral)
+- [Visão Geral](#visão-geral)
 - [Tecnologias](#tecnologias)
-- [Decisoes Tecnicas](#decisoes-tecnicas)
+- [Decisões Técnicas](#decisões-técnicas)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Desenvolvimento Local](#desenvolvimento-local)
 - [Docker](#docker)
-- [Integracao com Backend](#integracao-com-backend)
+- [Integração com Backend](#integração-com-backend)
 
 ---
 
-## Visao Geral
+## Visão Geral
 
-O frontend do Libera.ai e uma Single Page Application (SPA) que fornece duas funcionalidades principais:
+O frontend do Libera.ai é uma Single Page Application (SPA) que fornece duas funcionalidades principais:
 
-1. **Terminal de Pagamento**: Usuario insere codigo do ticket, visualiza QR Code PIX e acompanha status do pagamento em tempo real.
-2. **Terminal de Saida**: Usuario valida ticket pago e aciona abertura da cancela.
+1. **Terminal de Pagamento**: Usuário insere código do ticket, visualiza QR Code PIX e acompanha status do pagamento em tempo real.
+2. **Terminal de Saída**: Usuário valida ticket pago e aciona abertura da cancela.
 
 ---
 
 ## Tecnologias
 
-| Tecnologia | Versao | Proposito |
+| Tecnologia | Versão | Propósito |
 |------------|--------|-----------|
 | React | 19 | Biblioteca de UI com componentes reativos |
-| TypeScript | 5.x | Tipagem estatica para prevencao de erros |
+| TypeScript | 5.x | Tipagem estática para prevenção de erros |
 | Vite | 6.x | Build tool e dev server com hot reload |
-| TailwindCSS | 4 | Framework CSS utilitario |
+| TailwindCSS | 4 | Framework CSS utilitário |
 | React Router | 7.x | Roteamento SPA |
-| react-qr-code | 4.x | Geracao de QR Codes client-side |
+| react-qr-code | 4.x | Geração de QR Codes client-side |
 
 ---
 
-## Decisoes Tecnicas
+## Decisões Técnicas
 
 ### Por que React com TypeScript?
 
-**Problema**: A interface precisa gerenciar estados complexos durante o fluxo de pagamento (aguardando codigo, gerando PIX, monitorando pagamento, aprovado).
+**Problema**: A interface precisa gerenciar estados complexos durante o fluxo de pagamento (aguardando código, gerando PIX, monitorando pagamento, aprovado).
 
-**Solucao**: React permite modelar cada estado como componente declarativo. TypeScript garante que transicoes de estado sao validas em tempo de compilacao.
+**Solução**: React permite modelar cada estado como componente declarativo. TypeScript garante que transições de estado são válidas em tempo de compilação.
 
 ```typescript
-// Estados tipados garantem consistencia
+// Estados tipados garantem consistência
 type PaymentStatus = 'idle' | 'connecting' | 'waiting' | 'approved' | 'error';
 ```
 
-### Por que Vite ao inves de Create React App?
+### Por que Vite ao invés de Create React App?
 
-**Problema**: CRA e lento para builds e hot reload em projetos modernos.
+**Problema**: CRA é lento para builds e hot reload em projetos modernos.
 
-**Solucao**: Vite usa ESM nativo durante desenvolvimento, resultando em startup instantaneo e hot reload em menos de 100ms. Build de producao e 10x mais rapido.
+**Solução**: Vite usa ESM nativo durante desenvolvimento, resultando em startup instantâneo e hot reload em menos de 100ms. Build de produção é 10x mais rápido.
 
 ### Por que TailwindCSS?
 
-**Problema**: CSS customizado consome tempo e cria inconsistencias visuais.
+**Problema**: CSS customizado consome tempo e cria inconsistências visuais.
 
-**Solucao**: TailwindCSS permite desenvolvimento rapido com classes utilitarias. O design system fica consistente e responsivo sem CSS adicional.
+**Solução**: TailwindCSS permite desenvolvimento rápido com classes utilitárias. O design system fica consistente e responsivo sem CSS adicional.
 
 ```tsx
-// Estilizacao direta no componente
+// Estilização direta no componente
 <button className="btn-primary bg-black text-white px-4 py-2 rounded">
   Gerar PIX
 </button>
@@ -72,30 +72,30 @@ type PaymentStatus = 'idle' | 'connecting' | 'waiting' | 'approved' | 'error';
 
 ### Server-Sent Events (SSE) para Monitoramento
 
-**Problema**: O usuario precisa saber quando o pagamento foi confirmado sem recarregar a pagina.
+**Problema**: O usuário precisa saber quando o pagamento foi confirmado sem recarregar a página.
 
 **Alternativas consideradas**:
-1. **Polling**: Requisicoes periodicas ao servidor. Ineficiente e consome recursos.
+1. **Polling**: Requisições periódicas ao servidor. Ineficiente e consome recursos.
 2. **WebSocket**: Bidirecional, mas complexo para este caso de uso unidirecional.
-3. **SSE**: Conexao unidirecional do servidor para cliente. Ideal para atualizacoes de status.
+3. **SSE**: Conexão unidirecional do servidor para cliente. Ideal para atualizações de status.
 
-**Implementacao**: Hook customizado `usePaymentStream` gerencia conexao SSE com reconexao automatica.
+**Implementação**: Hook customizado `usePaymentStream` gerencia conexão SSE com reconexão automática.
 
 ```typescript
-// Hook encapsula toda a logica de conexao SSE
+// Hook encapsula toda a lógica de conexão SSE
 const { status, isApproved, reconnect } = usePaymentStream(paymentId);
 ```
 
-**Caracteristicas**:
-- Reconexao automatica com backoff exponencial
-- Cleanup automatico ao desmontar componente
+**Características**:
+- Reconexão automática com backoff exponencial
+- Cleanup automático ao desmontar componente
 - Estados tipados para UI reativa
 
 ### QR Code Client-side vs Server-side
 
 **Problema**: Mercado Pago retorna QR Code como base64 ou como payload EMV (texto).
 
-**Solucao**: Detectamos o formato recebido e renderizamos apropriadamente:
+**Solução**: Detectamos o formato recebido e renderizamos apropriadamente:
 - Base64: Renderiza como imagem diretamente
 - EMV Payload: Gera QR Code client-side com `react-qr-code`
 
@@ -117,9 +117,9 @@ src/
 │   └── client.ts         # Cliente API centralizado com tipagem
 │
 ├── components/
-│   ├── CopyButton.tsx    # Botao de copiar para clipboard
+│   ├── CopyButton.tsx    # Botão de copiar para clipboard
 │   ├── LoadingSpinner.tsx
-│   ├── Navigation.tsx    # Header de navegacao
+│   ├── Navigation.tsx    # Header de navegação
 │   └── StatusBadge.tsx   # Badge de status do pagamento
 │
 ├── hooks/
@@ -127,40 +127,40 @@ src/
 │
 ├── pages/
 │   ├── PaymentPage.tsx   # Fluxo de pagamento PIX
-│   └── ExitPage.tsx      # Terminal de saida
+│   └── ExitPage.tsx      # Terminal de saída
 │
 ├── types/
 │   └── index.ts          # Tipos TypeScript compartilhados
 │
 ├── utils/
-│   └── date.ts           # Formatacao de datas e valores
+│   └── date.ts           # Formatação de datas e valores
 │
 ├── App.tsx               # Componente raiz com rotas
 ├── main.tsx              # Entry point
 └── index.css             # Estilos globais + Tailwind
 ```
 
-### Organizacao por Feature
+### Organização por Feature
 
-Cada pagina e autocontida com sua logica de estado e chamadas de API. Componentes compartilhados ficam em `/components`.
+Cada página é autocontida com sua lógica de estado e chamadas de API. Componentes compartilhados ficam em `/components`.
 
 ---
 
 ## Desenvolvimento Local
 
-### Pre-requisitos
+### Pré-requisitos
 
 - Node.js 20+
 - npm ou pnpm
 
-### Instalacao
+### Instalação
 
 ```bash
 npm install
 npm run dev
 ```
 
-A aplicacao estara disponivel em `http://localhost:3000`.
+A aplicação estará disponível em `http://localhost:3000`.
 
 ### Proxy de Desenvolvimento
 
@@ -179,14 +179,14 @@ server: {
 }
 ```
 
-### Scripts Disponiveis
+### Scripts Disponíveis
 
-| Script | Descricao |
+| Script | Descrição |
 |--------|-----------|
 | `npm run dev` | Servidor de desenvolvimento |
-| `npm run build` | Build de producao |
+| `npm run build` | Build de produção |
 | `npm run preview` | Preview do build |
-| `npm run lint` | Verificar codigo com ESLint |
+| `npm run lint` | Verificar código com ESLint |
 
 ---
 
@@ -198,15 +198,15 @@ server: {
 docker build -t libera-front .
 ```
 
-### Execucao
+### Execução
 
 ```bash
 docker run -p 3000:80 libera-front
 ```
 
-### Configuracao Nginx para SSE
+### Configuração Nginx para SSE
 
-O `nginx.conf` inclui configuracoes especificas para Server-Sent Events:
+O `nginx.conf` inclui configurações específicas para Server-Sent Events:
 
 ```nginx
 location /api/payments/stream {
@@ -219,15 +219,15 @@ location /api/payments/stream {
 
 ---
 
-## Integracao com Backend
+## Integração com Backend
 
 ### Endpoints Consumidos
 
-| Endpoint | Metodo | Descricao |
+| Endpoint | Método | Descrição |
 |----------|--------|-----------|
 | `/payments` | POST | Criar pagamento PIX |
 | `/payments/stream/{id}` | GET (SSE) | Monitorar status |
-| `/access/exit` | PUT | Registrar saida |
+| `/access/exit` | PUT | Registrar saída |
 
 ### Cliente API Tipado
 
@@ -243,14 +243,14 @@ class ApiClient {
 
 ### Tratamento de Erros
 
-Erros de API sao capturados e exibidos ao usuario com mensagens contextuais:
+Erros de API são capturados e exibidos ao usuário com mensagens contextuais:
 
 ```typescript
 } catch (err) {
   if (errorObj.status === 400) {
-    message = 'Codigo invalido ou acesso nao encontrado';
+    message = 'Código inválido ou acesso não encontrado';
   } else if (errorObj.message.includes('Payment')) {
-    message = 'Pagamento nao confirmado. Efetue o pagamento primeiro.';
+    message = 'Pagamento não confirmado. Efetue o pagamento primeiro.';
   }
 }
 ```
