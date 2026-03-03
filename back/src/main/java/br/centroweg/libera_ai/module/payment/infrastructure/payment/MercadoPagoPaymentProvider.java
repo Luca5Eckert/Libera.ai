@@ -8,6 +8,7 @@ import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
+import com.mercadopago.client.preference.PreferencePayerRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
@@ -39,10 +40,12 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
     private final PreferenceClient preferenceClient;
     private final String accessToken;
     private final String notificationUrl;
+    private final String defaultPayerEmail;
 
     public MercadoPagoPaymentProvider(
             @Value("${mercadopago.access-token}") String accessToken,
-            @Value("${mercadopago.notification-url:}") String notificationUrl) {
+            @Value("${mercadopago.notification-url:}") String notificationUrl,
+            @Value("${mercadopago.default-payer-email:}") String defaultPayerEmail) {
 
         log.info("[MP-PROVIDER] Initializing Mercado Pago Payment Provider (Checkout Pro)");
 
@@ -55,6 +58,11 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
         // Log token type (TEST vs LIVE) for debugging - never log the actual token
         if (accessToken.startsWith("TEST-")) {
             log.info("[MP-PROVIDER] Using TEST credentials (sandbox mode)");
+            if (defaultPayerEmail == null || defaultPayerEmail.isBlank()) {
+                log.warn("[MP-PROVIDER] TEST mode detected but no default payer email configured. " +
+                        "Set MP_DEFAULT_PAYER_EMAIL to a test buyer account to avoid 'Uma das partes é de teste' errors. " +
+                        "The test buyer must be created in the Mercado Pago Developer Panel.");
+            }
         } else if (accessToken.startsWith("APP_USR-")) {
             log.info("[MP-PROVIDER] Using LIVE credentials (production mode)");
         } else {
@@ -66,6 +74,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
         this.paymentClient = new PaymentClient();
         this.preferenceClient = new PreferenceClient();
         this.notificationUrl = notificationUrl;
+        this.defaultPayerEmail = defaultPayerEmail;
 
         if (notificationUrl != null && !notificationUrl.isBlank()) {
             log.info("[MP-PROVIDER] Webhook URL configured: {}", notificationUrl);
@@ -98,6 +107,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
             PreferenceRequest.PreferenceRequestBuilder builder = PreferenceRequest.builder()
                     .items(Collections.singletonList(item))
                     .externalReference(internalPaymentId)
+                    .binaryMode(false)
                     .notificationUrl(notificationUrl.isEmpty() ? null : notificationUrl)
                     .backUrls(PreferenceBackUrlsRequest.builder()
                             .success("https://seu-app.com/success")
@@ -105,6 +115,13 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                             .pending("https://seu-app.com/pending")
                             .build())
                     .autoReturn("approved");
+
+            if (defaultPayerEmail != null && !defaultPayerEmail.isBlank()) {
+                builder.payer(PreferencePayerRequest.builder()
+                        .email(defaultPayerEmail)
+                        .build());
+                log.info("[MP-PROVIDER] Payer email set on preference (test buyer configured)");
+            }
 
             MPRequestOptions requestOptions = MPRequestOptions.builder()
                     .accessToken(accessToken)
@@ -125,6 +142,12 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
             String errorContent = getApiResponseContent(e);
             log.error("[MP-PROVIDER] Mercado Pago API error creating preference - Status: {}, Content: {}", 
                     e.getStatusCode(), errorContent);
+            if (errorContent.contains("teste") || errorContent.contains("test")) {
+                log.error("[MP-PROVIDER] Test/production identity mismatch detected. Possible causes: " +
+                        "1) Buyer is not a test account (create one in MP Developer Panel), " +
+                        "2) Seller credentials mismatch (TEST- vs APP_USR-), " +
+                        "3) Payer email is the same as the seller account (not allowed).");
+            }
             throw new PaymentIntegrationException(buildMercadoPagoErrorMessage("create preference", e), e);
         } catch (MPException e) {
             log.error("[MP-PROVIDER] Mercado Pago SDK error: {}", e.getMessage(), e);
