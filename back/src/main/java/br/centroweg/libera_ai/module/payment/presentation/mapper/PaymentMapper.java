@@ -10,7 +10,7 @@ public class PaymentMapper {
     public PaymentResponse toPaymentResponse(PaymentInfo paymentInfo) {
         return new PaymentResponse(
                 paymentInfo.amount(),
-                paymentInfo.qrCode(),
+                paymentInfo.linkPayment(),
                 paymentInfo.generatedPaymentId()
         );
     }

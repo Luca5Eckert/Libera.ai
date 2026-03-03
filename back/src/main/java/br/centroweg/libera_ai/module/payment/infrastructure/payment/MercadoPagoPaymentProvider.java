@@ -5,82 +5,87 @@ import br.centroweg.libera_ai.module.payment.domain.port.PaymentProvider;
 import br.centroweg.libera_ai.module.payment.infrastructure.exception.PaymentIntegrationException;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
-import com.mercadopago.client.payment.PaymentCreateRequest;
-import com.mercadopago.client.payment.PaymentPayerRequest;
+import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
+import com.mercadopago.client.preference.PreferenceClient;
+import com.mercadopago.client.preference.PreferenceItemRequest;
+import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.resources.payment.Payment;
+import com.mercadopago.resources.preference.Preference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
 @Service
 public class MercadoPagoPaymentProvider implements PaymentProvider {
 
     private static final Logger log = LoggerFactory.getLogger(MercadoPagoPaymentProvider.class);
+
     private final PaymentClient paymentClient;
+    private final PreferenceClient preferenceClient;
     private final String accessToken;
-    private final String defaultEmail;
     private final String notificationUrl;
 
     public MercadoPagoPaymentProvider(
             @Value("${mercadopago.access-token}") String accessToken,
-            @Value("${mercadopago.default-payer-email}") String defaultEmail,
             @Value("${mercadopago.notification-url:}") String notificationUrl) {
 
-        log.info("Iniciando MercadoPagoPaymentProvider...");
-        log.info("Token injetado: {}", accessToken);
-        log.info("E-mail do pagador injetado: {}", defaultEmail);
-        log.info("Notification URL: {}", notificationUrl.isEmpty() ? "(não configurada)" : notificationUrl);
+        log.info("Iniciando MercadoPagoPaymentProvider com Checkout Pro...");
 
         MercadoPagoConfig.setAccessToken(accessToken);
         this.accessToken = accessToken;
         this.paymentClient = new PaymentClient();
-        this.defaultEmail = defaultEmail;
+        this.preferenceClient = new PreferenceClient();
         this.notificationUrl = notificationUrl;
     }
 
     @Override
     public PaymentInfo generatePayment(double amount) {
         try {
-            log.info("Gerando pagamento PIX...");
-            log.info("Enviando requisição para e-mail: {}", defaultEmail);
+            log.info("Gerando preferência de pagamento (Checkout Pro) no valor de: {}", amount);
+
+            PreferenceItemRequest item = PreferenceItemRequest.builder()
+                    .title("Estacionamento Libera.ai")
+                    .description("Pagamento de estadia - Libera.ai")
+                    .quantity(1)
+                    .unitPrice(BigDecimal.valueOf(amount))
+                    .build();
+
+            PreferenceRequest.PreferenceRequestBuilder builder = PreferenceRequest.builder()
+                    .items(Collections.singletonList(item))
+                    .notificationUrl(notificationUrl.isEmpty() ? null : notificationUrl)
+                    .backUrls(PreferenceBackUrlsRequest.builder()
+                            .success("https://seu-app.com/success")
+                            .failure("https://seu-app.com/failure")
+                            .build())
+                    .autoReturn("approved");
 
             MPRequestOptions requestOptions = MPRequestOptions.builder()
                     .accessToken(accessToken)
                     .build();
 
-            PaymentCreateRequest.PaymentCreateRequestBuilder builder = PaymentCreateRequest.builder()
-                    .transactionAmount(BigDecimal.valueOf(amount))
-                    .description("Estacionamento Libera.ai")
-                    .paymentMethodId("pix")
-                    .payer(PaymentPayerRequest.builder()
-                            .email(defaultEmail)
-                            .build());
+            Preference preference = preferenceClient.create(builder.build(), requestOptions);
 
-            if (!notificationUrl.isEmpty()) {
-                builder.notificationUrl(notificationUrl);
-            }
+            log.info("Preferência criada com sucesso! ID: {}", preference.getId());
 
-            Payment payment = paymentClient.create(builder.build(), requestOptions);
-
-            log.info("Pagamento criado com sucesso! ID MP: {}", payment.getId());
-
-            String generatedPaymentId = String.valueOf(payment.getId());
-            String qrCode = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
-
-            return new PaymentInfo(generatedPaymentId, qrCode, amount);
+            return new PaymentInfo(
+                    preference.getId(),
+                    preference.getInitPoint(),
+                    amount
+            );
 
         } catch (MPApiException e) {
-            log.error("Erro na API do Mercado Pago: {}", getApiResponseContent(e));
-            throw new PaymentIntegrationException(buildMercadoPagoErrorMessage("generate payment", e), e);
+            log.error("Erro na API do Mercado Pago (Preference): {}", getApiResponseContent(e));
+            throw new PaymentIntegrationException(buildMercadoPagoErrorMessage("generate preference", e), e);
         } catch (MPException e) {
-            log.error("Erro inesperado no SDK do Mercado Pago: {}", e.getMessage());
-            throw new PaymentIntegrationException("Failed to create payment with Mercado Pago: " + e.getMessage(), e);
+            log.error("Erro inesperado no SDK: {}", e.getMessage());
+            throw new PaymentIntegrationException("Failed to create preference: " + e.getMessage(), e);
         }
     }
 
@@ -93,32 +98,20 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                     .accessToken(accessToken)
                     .build();
 
-            Long mpId = Long.valueOf(externalId);
-            Payment payment = paymentClient.get(mpId, requestOptions);
-            log.info("Status retornado: {}", payment.getStatus());
+            Payment payment = paymentClient.get(Long.valueOf(externalId), requestOptions);
             return payment.getStatus();
-        } catch (MPApiException e) {
-            throw new PaymentIntegrationException(buildMercadoPagoErrorMessage("fetch payment status", e), e);
-        } catch (MPException e) {
-            throw new PaymentIntegrationException("Failed to fetch payment status with Mercado Pago: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Erro ao buscar status: {}", e.getMessage());
+            return "pending";
         }
     }
 
     private String buildMercadoPagoErrorMessage(String operation, MPApiException e) {
-        String apiResponse = getApiResponseContent(e);
-        int statusCode = e.getStatusCode();
-
-        if (statusCode == 401 && apiResponse.contains("Unauthorized use of live credentials")) {
-            return "Mercado Pago authentication error: Ensure the MP_ACCESS_TOKEN is a TEST token (starting with 'TEST-') " +
-                    "and MP_DEFAULT_PAYER_EMAIL is a test user created under the same Mercado Pago developer account. " +
-                    "Visit https://www.mercadopago.com.br/developers/panel/app to create matching test users.";
-        }
-
-        return String.format("Mercado Pago API error during %s (HTTP %d): %s", operation, statusCode, apiResponse);
+        return String.format("Mercado Pago API error during %s (HTTP %d): %s",
+                operation, e.getStatusCode(), getApiResponseContent(e));
     }
 
     private String getApiResponseContent(MPApiException e) {
-        if (e.getApiResponse() == null) return "No response content";
-        return e.getApiResponse().getContent();
+        return (e.getApiResponse() != null) ? e.getApiResponse().getContent() : "No response content";
     }
 }

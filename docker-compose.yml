@@ -31,10 +31,10 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - NODE_HOST=${NODE_HOST}
-      - NODE_PORT=${NODE_PORT}
+      - NODE_PORT=${NODE_RED_PORT}
       - WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
       - MP_ACCESS_TOKEN=${MP_ACCESS_TOKEN}
-      - MP_DEFAULT_PAYER_EMAIL=${MP_DEFAULT_PAYER_EMAIL}
+      - MP_DEFAULT_PAYER_ID=${MP_DEFAULT_PAYER_ID}
     networks:
       - libera_network
 
