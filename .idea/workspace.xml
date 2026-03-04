@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b881b869-1c6c-4250-9869-6bc8bd0b8410" name="Changes" comment="" />
+    <list default="true" id="b881b869-1c6c-4250-9869-6bc8bd0b8410" name="Changes" comment="feat: improve logging in MercadoPagoPaymentProvider">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/infrastructure/payment/MercadoPagoPaymentProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/infrastructure/payment/MercadoPagoPaymentProvider.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/infrastructure/persistence/entity/PaymentEntity.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/infrastructure/persistence/entity/PaymentEntity.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -75,7 +79,20 @@
       <option name="presentableId" value="Default" />
       <updated>1772238109797</updated>
     </task>
+    <task id="LOCAL-00001" summary="feat: improve logging in MercadoPagoPaymentProvider">
+      <option name="closed" value="true" />
+      <created>1772579529169</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1772579529171</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: improve logging in MercadoPagoPaymentProvider" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: improve logging in MercadoPagoPaymentProvider" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

@@ -49,11 +49,18 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                     .unitPrice(new BigDecimal(String.valueOf(amount)))
                     .build();
 
+            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                    .success("http://localhost:3000/")
+                    .failure("http://localhost:3000/")
+                    .pending("http://localhost:3000/")
+                    .build();
+
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(Collections.singletonList(itemRequest))
                     .externalReference(internalPaymentId)
                     .notificationUrl(notificationUrl)
-                    .autoReturn("approved")
+//                    .backUrls(backUrls)
+//                    .autoReturn("approved")
                     .build();
 
             Preference preference = client.create(preferenceRequest);
@@ -67,9 +74,16 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                     amount
             );
 
+        } catch (MPApiException e) {
+            String apiResponse = (e.getApiResponse() != null) ? e.getApiResponse().getContent() : "Sem conteúdo";
+            log.error("[MP-GENERATE] Erro da API do Mercado Pago: {}", apiResponse);
+            throw new RuntimeException("Erro na API MP: " + apiResponse);
+        } catch (MPException e) {
+            log.error("[MP-GENERATE] Erro no SDK do Mercado Pago: {}", e.getMessage());
+            throw new RuntimeException("Erro SDK MP: " + e.getMessage());
         } catch (Exception e) {
-            log.error("[MP-GENERATE] Erro fatal ao gerar preferência para ID: {}", internalPaymentId, e);
-            throw new RuntimeException("Erro ao gerar pagamento: " + e.getMessage());
+            log.error("[MP-GENERATE] Erro inesperado: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro inesperado: " + e.getMessage());
         }
     }
 
