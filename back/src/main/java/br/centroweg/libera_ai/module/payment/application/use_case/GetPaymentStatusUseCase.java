@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 public record GetPaymentStatusUseCase(PaymentRepository paymentRepository) {
 
     @Transactional(readOnly = true)
-    public boolean execute(String paymentId) {
-        return paymentRepository.findById(paymentId)
+    public boolean execute(String externalPaymentId) {
+        return paymentRepository.findByExternalId(externalPaymentId)
                 .map(Payment::isPaid)
                 .orElse(false);
     }

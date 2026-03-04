@@ -47,9 +47,9 @@ public class PaymentController {
     }
 
     @GetMapping(path = "/stream/{paymentId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> streamStatus(@PathVariable String paymentId) {
+    public Flux<ServerSentEvent<String>> streamStatus(@PathVariable String externalPaymentId) {
         return Flux.interval(Duration.ofSeconds(2))
-                .map(tick -> statusUseCase.execute(paymentId))
+                .map(tick -> statusUseCase.execute(externalPaymentId))
                 .map(isPaid -> ServerSentEvent.<String>builder().data(String.valueOf(isPaid)).build())
                 .takeUntil(sse -> "true".equals(sse.data()));
     }
