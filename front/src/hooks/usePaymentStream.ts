@@ -59,7 +59,8 @@ export function usePaymentStream(paymentId: string | null): UsePaymentStreamRetu
       reconnectAttemptRef.current = 0;
     };
 
-    eventSource.onmessage = (event) => {
+    // Handle named 'payment-status' events from the backend SSE stream
+    const handlePaymentStatus = (event: MessageEvent) => {
       const isPaid = event.data === 'true';
       if (isPaid) {
         approvedRef.current = true;
@@ -69,6 +70,8 @@ export function usePaymentStream(paymentId: string | null): UsePaymentStreamRetu
         setStatus('waiting');
       }
     };
+
+    eventSource.addEventListener('payment-status', handlePaymentStatus);
 
     eventSource.onerror = () => {
       eventSource.close();
@@ -99,6 +102,7 @@ export function usePaymentStream(paymentId: string | null): UsePaymentStreamRetu
     };
 
     return () => {
+      eventSource.removeEventListener('payment-status', handlePaymentStatus);
       eventSource.close();
       eventSourceRef.current = null;
     };

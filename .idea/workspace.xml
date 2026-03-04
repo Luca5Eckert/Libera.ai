@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b881b869-1c6c-4250-9869-6bc8bd0b8410" name="Changes" comment="chore: add configuration of infra to development">
+    <list default="true" id="b881b869-1c6c-4250-9869-6bc8bd0b8410" name="Changes" comment="fix: add treatment of error in streamPaymentStatus">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/application/use_case/GetPaymentStatusUseCase.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/application/use_case/GetPaymentStatusUseCase.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/application/use_case/ProcessPaymentNotificationUseCase.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/application/use_case/ProcessPaymentNotificationUseCase.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/presentation/controller/PaymentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/br/centroweg/libera_ai/module/payment/presentation/controller/PaymentController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,7 +109,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772584416472</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="fix: add treatment of error in streamPaymentStatus">
+      <option name="closed" value="true" />
+      <created>1772662899806</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1772662899806</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -120,7 +125,8 @@
     <MESSAGE value="feat: improve error treatment" />
     <MESSAGE value="refactor: change UUID to String" />
     <MESSAGE value="chore: add configuration of infra to development" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: add configuration of infra to development" />
+    <MESSAGE value="fix: add treatment of error in streamPaymentStatus" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: add treatment of error in streamPaymentStatus" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
