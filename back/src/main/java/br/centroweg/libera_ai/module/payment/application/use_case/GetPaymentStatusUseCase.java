@@ -6,18 +6,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class GetPaymentStatusUseCase {
+public record GetPaymentStatusUseCase(PaymentRepository paymentRepository) {
 
-    private final PaymentRepository paymentRepository;
-
-    public GetPaymentStatusUseCase(PaymentRepository paymentRepository) {
-        this.paymentRepository = paymentRepository;
-    }
-
+    @Transactional(readOnly = true)
     public boolean execute(String paymentId) {
         return paymentRepository.findById(paymentId)
                 .map(Payment::isPaid)
                 .orElse(false);
     }
-
 }

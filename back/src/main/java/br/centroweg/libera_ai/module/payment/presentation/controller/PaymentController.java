@@ -26,75 +26,40 @@ public class PaymentController {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
 
-    private final CreatePaymentUseCase createPaymentUseCase;
-    private final GetPaymentStatusUseCase getPaymentStatusUseCase;
-    private final ProcessPaymentNotificationUseCase processPaymentNotificationUseCase;
+    private final CreatePaymentUseCase createUseCase;
+    private final GetPaymentStatusUseCase statusUseCase;
+    private final ProcessPaymentNotificationUseCase processNotificationUseCase;
 
     private final PaymentMapper mapper;
 
-    public PaymentController(CreatePaymentUseCase createPaymentUseCase, GetPaymentStatusUseCase getPaymentStatusUseCase, ProcessPaymentNotificationUseCase processPaymentNotificationUseCase, PaymentMapper mapper) {
-        this.createPaymentUseCase = createPaymentUseCase;
-        this.getPaymentStatusUseCase = getPaymentStatusUseCase;
-        this.processPaymentNotificationUseCase = processPaymentNotificationUseCase;
+    public PaymentController(CreatePaymentUseCase createUseCase, GetPaymentStatusUseCase statusUseCase, ProcessPaymentNotificationUseCase processNotificationUseCase, PaymentMapper mapper) {
+        this.createUseCase = createUseCase;
+        this.statusUseCase = statusUseCase;
+        this.processNotificationUseCase = processNotificationUseCase;
         this.mapper = mapper;
     }
 
-    @PostMapping
-    public ResponseEntity<PaymentResponse> createPayment(
-            @RequestBody @Valid CreatePaymentRequest request
-    ) {
-        var paymentInfo = createPaymentUseCase.execute(request.accessCode());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(mapper.toPaymentResponse(paymentInfo));
+    @PostMapping
+    public ResponseEntity<PaymentResponse> create(@RequestBody @Valid CreatePaymentRequest request) {
+        var paymentInfo = createUseCase.execute(request.accessCode());
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toPaymentResponse(paymentInfo));
     }
 
     @GetMapping(path = "/stream/{paymentId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> streamPaymentStatus(@PathVariable String paymentId) {
-        return Flux.interval(Duration.ofSeconds(1))
-                .map(tick -> {
-                    boolean isPaid = getPaymentStatusUseCase.execute(paymentId);
-                    return ServerSentEvent.<String>builder()
-                            .data(String.valueOf(isPaid))
-                            .build();
-                })
-                .doOnError(e -> System.err.println("Erro no stream: " + e.getMessage()))
-                .onErrorResume(e -> Flux.empty());
+    public Flux<ServerSentEvent<String>> streamStatus(@PathVariable String paymentId) {
+        return Flux.interval(Duration.ofSeconds(2))
+                .map(tick -> statusUseCase.execute(paymentId))
+                .map(isPaid -> ServerSentEvent.<String>builder().data(String.valueOf(isPaid)).build())
+                .takeUntil(sse -> "true".equals(sse.data()));
     }
 
-    /**
-     * Webhook endpoint for Mercado Pago payment notifications.
-     * 
-     * Security measures:
-     * 1. Returns 200 immediately to prevent MP retries
-     * 2. Validates webhook type before processing
-     * 3. Processes asynchronously to not block response
-     * 4. The UseCase validates payment by fetching from MP API (prevents bypass attacks)
-     * 5. Idempotency is handled in the UseCase layer
-     */
+
     @PostMapping("/webhook")
-    public ResponseEntity<Void> handleWebhook(@RequestBody MercadoPagoWebhookRequest request) {
-        if (request.type() == null || !request.type().equals("payment")) {
-            log.info("[WEBHOOK] Ignoring non-payment notification type: {}", request.type());
-            return ResponseEntity.ok().build();
+    public ResponseEntity<Void> webhook(@RequestBody MercadoPagoWebhookRequest request) {
+        if ("payment".equals(request.type()) && request.data() != null) {
+            CompletableFuture.runAsync(() -> processNotificationUseCase.execute(request.data().paymentId()));
         }
-
-        if (request.data() == null || request.data().paymentId() == null || request.data().paymentId().isBlank()) {
-            log.warn("[WEBHOOK] Received notification with missing data or payment ID");
-            return ResponseEntity.ok().build();
-        }
-
-        String paymentId = request.data().paymentId();
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                processPaymentNotificationUseCase.execute(paymentId);
-            } catch (Exception e) {
-                log.error("[WEBHOOK] Error processing notification for payment {}: {}", paymentId, e.getMessage(), e);
-            }
-        });
-
         return ResponseEntity.ok().build();
     }
 
