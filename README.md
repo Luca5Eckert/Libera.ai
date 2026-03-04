@@ -2,13 +2,13 @@
   
 # Libera.ai
 
-### Sistema Inteligente de Gestão de Estacionamentos com IoT e Pagamento PIX
+### Sistema Inteligente de Gestão de Estacionamentos com IoT e Checkout Pro
 
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![WebFlux](https://img.shields.io/badge/Reactive-WebFlux-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Mercado Pago](https://img.shields.io/badge/Mercado%20Pago-PIX-009EE3?style=for-the-badge&logo=mercadopago&logoColor=white)](https://www.mercadopago.com.br/)
+[![Mercado Pago](https://img.shields.io/badge/Mercado%20Pago-Checkout%20Pro-009EE3?style=for-the-badge&logo=mercadopago&logoColor=white)](https://www.mercadopago.com.br/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-GPL%20v2-blue?style=for-the-badge)](LICENSE)
 
@@ -46,7 +46,7 @@ Estacionamentos comerciais enfrentam diversos desafios operacionais que impactam
 
 **Métodos de Pagamento Limitados**
 - Dependência de dinheiro ou cartão físico
-- Dificuldade em adotar pagamentos digitais modernos como PIX
+- Dificuldade em adotar pagamentos digitais modernos
 - Processos de conciliação financeira complexos
 
 **Sistemas Legados**
@@ -60,7 +60,7 @@ Estacionamentos comerciais enfrentam diversos desafios operacionais que impactam
 
 O **Libera.ai** é uma plataforma completa que automatiza todo o ciclo operacional do estacionamento, desde a detecção da entrada até a liberação da saída com pagamento validado.
 
-O sistema utiliza sensores IoT (ESP32) para detectar veículos automaticamente, comunicação MQTT para transmissão de dados em tempo real, processamento de pagamentos via PIX com o Mercado Pago, e uma interface web responsiva para interação do usuário.
+O sistema utiliza sensores IoT (ESP32) para detectar veículos automaticamente, comunicação MQTT para transmissão de dados em tempo real, processamento de pagamentos via Checkout Pro do Mercado Pago, e uma interface web responsiva para interação do usuário.
 
 ### Componentes da Solução
 
@@ -70,13 +70,13 @@ O sistema utiliza sensores IoT (ESP32) para detectar veículos automaticamente, 
 | **Comunicação IoT** | Transmissão de eventos entre dispositivos | MQTT + Broker Público |
 | **Orquestração** | Recebe eventos MQTT e interage com backend | Node-RED |
 | **Backend API** | Lógica de negócio e integração de pagamentos | Spring Boot + WebFlux |
-| **Pagamentos** | Geração de QR Code PIX e confirmação | Mercado Pago SDK |
+| **Pagamentos** | Checkout Pro com múltiplas formas de pagamento | Mercado Pago SDK |
 | **Interface Web** | Terminal de pagamento e liberação de saída | React + TypeScript |
 | **Banco de Dados** | Persistência de acessos e pagamentos | MySQL |
 
 ### Diferenciais
 
-- **Pagamento PIX**: Método de pagamento instantâneo e sem taxas para o usuário
+- **Checkout Pro**: Solução completa de pagamento com múltiplas opções (cartão, PIX, boleto) em interface segura do Mercado Pago
 - **Tempo Real**: Atualizações de status via Server-Sent Events (SSE)
 - **Automação Completa**: Desde a detecção até a liberação sem intervenção humana
 - **Arquitetura Moderna**: Clean Architecture e DDD para escalabilidade e manutenção
@@ -116,14 +116,14 @@ sequenceDiagram
     API->>DB: SELECT access WHERE code = ?
     DB-->>API: Retorna registro de entrada
     API->>API: Calcula tempo e valor (R$ 10/hora)
-    API->>MP: Cria pagamento PIX
-    MP-->>API: Retorna QR Code + payment_id
+    API->>MP: Cria preferência de pagamento (Checkout Pro)
+    MP-->>API: Retorna URL de checkout + preference_id
     API->>DB: INSERT payment (PENDING)
-    API-->>Web: {qrCode, amount, paymentId}
-    Web->>User: Exibe QR Code PIX
+    API-->>Web: {checkoutUrl, amount, paymentId}
+    Web->>User: Redireciona para Checkout Pro do Mercado Pago
 
     Note over User,Web: FASE 4: CONFIRMAÇÃO DE PAGAMENTO
-    User->>MP: Escaneia e paga via app bancário
+    User->>MP: Realiza pagamento na interface do Mercado Pago
     MP->>API: Webhook: pagamento confirmado
     API->>DB: UPDATE payment SET paid = true
     
@@ -154,8 +154,8 @@ sequenceDiagram
 |------|-----------|------------------------|
 | **1. Entrada** | Sensor ESP32 detecta veículo e gera código único. Código é publicado via MQTT e Node-RED insere no banco de dados. | ESP32, MQTT Broker, Node-RED, MySQL |
 | **2. Permanência** | Veículo permanece no estacionamento. Sistema registra tempo de entrada para cálculo posterior. | MySQL |
-| **3. Pagamento** | Usuário insere código no terminal web. Sistema calcula valor baseado no tempo e gera QR Code PIX via Mercado Pago. | Frontend, Backend, Mercado Pago |
-| **4. Confirmação** | Usuário paga via PIX. Mercado Pago envia webhook ao backend confirmando pagamento. | Mercado Pago, Backend, MySQL |
+| **3. Pagamento** | Usuário insere código no terminal web. Sistema calcula valor baseado no tempo e redireciona para Checkout Pro do Mercado Pago. | Frontend, Backend, Mercado Pago |
+| **4. Confirmação** | Usuário finaliza pagamento na interface segura do Mercado Pago. Sistema recebe webhook confirmando a transação. | Mercado Pago, Backend, MySQL |
 | **5. Monitoramento** | Frontend mantém conexão SSE com backend, recebendo atualizações em tempo real sobre status do pagamento. | Frontend, Backend (WebFlux) |
 | **6. Liberação** | Usuário solicita saída. Backend valida pagamento e envia comando via HTTP para Node-RED, que publica via MQTT para ESP32 abrir a cancela. | Frontend, Backend, Node-RED, MQTT, ESP32 |
 
@@ -173,7 +173,7 @@ A escolha de cada tecnologia foi baseada em requisitos técnicos e limitações 
 | **Spring Boot 3.5** | Framework padrão de mercado para APIs REST. Facilita configuração e integração com banco de dados e serviços externos. |
 | **Spring WebFlux** | Suporte nativo a Server-Sent Events (SSE) para atualizações em tempo real sem polling constante do cliente. |
 | **MySQL 8.0** | Banco de dados relacional confiável. Ideal para dados transacionais como acessos e pagamentos. |
-| **Mercado Pago SDK** | SDK oficial para integração PIX. Suporte a QR Code dinâmico e webhooks para notificação de pagamento. |
+| **Mercado Pago SDK** | SDK oficial para integração com Checkout Pro. Suporte a múltiplas formas de pagamento e webhooks para notificação de transações. |
 
 ### Frontend
 
