@@ -19,7 +19,7 @@ import java.util.UUID;
 public class PaymentEntity {
 
     @Id
-    private UUID id;
+    private String id;
 
     @OneToOne(
             fetch = FetchType.EAGER,
@@ -39,7 +39,7 @@ public class PaymentEntity {
     private String paymentStatus;
 
     public PaymentEntity(String id, AccessEntity access, double amount, boolean paid, String externalId) {
-        this.id = UUID.fromString(id);
+        this.id = id;
         this.access = access;
         this.amount = amount;
         this.paid = paid;

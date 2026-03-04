@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PaymentEntityRepositoryJpa extends JpaRepository<PaymentEntity, UUID> {
+public interface PaymentEntityRepositoryJpa extends JpaRepository<PaymentEntity, String> {
 
 
     Optional<PaymentEntity> findByAccessCode(int code);

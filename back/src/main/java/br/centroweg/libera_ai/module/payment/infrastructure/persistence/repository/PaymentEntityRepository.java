@@ -26,7 +26,7 @@ public class PaymentEntityRepository implements PaymentRepository {
 
     @Override
     public Optional<Payment> findById(String paymentId) {
-        var paymentEntity = paymentEntityRepositoryJpa.findById(UUID.fromString(paymentId));
+        var paymentEntity = paymentEntityRepositoryJpa.findById(paymentId);
 
         return paymentEntity.map(PaymentEntity::toDomain);
     }
