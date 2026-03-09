@@ -1,6 +1,6 @@
 <div align="center">
   
-# Libera.ai
+# OpenIt
 
 ### Sistema Inteligente de Gestão de Estacionamentos com IoT e Checkout Pro
 
@@ -58,7 +58,7 @@ Estacionamentos comerciais enfrentam diversos desafios operacionais que impactam
 
 ## Solução
 
-O **Libera.ai** é uma plataforma completa que automatiza todo o ciclo operacional do estacionamento, desde a detecção da entrada até a liberação da saída com pagamento validado.
+O **OpenIt** é uma plataforma completa que automatiza todo o ciclo operacional do estacionamento, desde a detecção da entrada até a liberação da saída com pagamento validado.
 
 O sistema utiliza sensores IoT (ESP32) para detectar veículos automaticamente, comunicação MQTT para transmissão de dados em tempo real, processamento de pagamentos via Checkout Pro do Mercado Pago, e uma interface web responsiva para interação do usuário.
 
@@ -262,7 +262,7 @@ flowchart TB
 ## Estrutura do Repositório
 
 ```
-Libera.ai/
+OpenIt/
 ├── back/                          # Backend - API REST (Java/Spring Boot)
 │   ├── src/
 │   │   └── main/java/br/centroweg/libera_ai/
