@@ -1,6 +1,6 @@
-# Libera.ai - Frontend
+# OpenIt - Frontend
 
-Interface web para o sistema de estacionamento Libera.ai, construída com React, TypeScript, Vite e TailwindCSS.
+Interface web para o sistema de estacionamento OpenIt, construída com React, TypeScript, Vite e TailwindCSS.
 
 ---
 
@@ -18,7 +18,7 @@ Interface web para o sistema de estacionamento Libera.ai, construída com React,
 
 ## Visão Geral
 
-O frontend do Libera.ai é uma Single Page Application (SPA) que fornece duas funcionalidades principais:
+O frontend do OpenIt é uma Single Page Application (SPA) que fornece duas funcionalidades principais:
 
 1. **Terminal de Pagamento**: Usuário insere código do ticket, visualiza QR Code PIX e acompanha status do pagamento em tempo real.
 2. **Terminal de Saída**: Usuário valida ticket pago e aciona abertura da cancela.
@@ -195,13 +195,13 @@ server: {
 ### Build
 
 ```bash
-docker build -t libera-front .
+docker build -t openit-front .
 ```
 
 ### Execução
 
 ```bash
-docker run -p 3000:80 libera-front
+docker run -p 3000:80 openit-front
 ```
 
 ### Configuração Nginx para SSE

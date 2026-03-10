@@ -10,7 +10,7 @@ export function Navigation() {
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
               <span className="text-black font-bold text-lg">L</span>
             </div>
-            <span className="font-bold text-xl tracking-tight">Libera.ai</span>
+            <span className="font-bold text-xl tracking-tight">OpenIt</span>
           </div>
 
           <div className="flex items-center gap-1">
