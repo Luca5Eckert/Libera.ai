@@ -6,4 +6,4 @@ COPY flows.json /data/flows.json
 # Se você usa nodes extras (ex: dashboard, mysql), instale-os aqui
 RUN npm install node-red-dashboard node-red-node-mysql
 
-USER nobody
+USER node-red

@@ -39,7 +39,8 @@ services:
     networks:
       - openit_network
     depends_on:
-      - nodered
+      nodered:
+        condition: service_healthy
 
   nodered:
     build:
@@ -49,10 +50,14 @@ services:
     restart: unless-stopped
     ports:
       - "1880:1880"
-    volumes:
-      - ./nodered/data:/data
     networks:
       - openit_network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:1880"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   ngrok:
     image: ngrok/ngrok@sha256:07bd8fa758e73489d3ba5a2fc95d912e0b8359ebfca4a55886e2059c10020da4
