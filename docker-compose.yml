@@ -30,8 +30,8 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - NODE_HOST=nodered
-      - NODE_PORT=1880
+      - NODE_HOST=${NODE_HOST}
+      - NODE_PORT=${NODE_PORT}
       - WEBHOOK_URL=${WEBHOOK_URL}
       - MP_ACCESS_TOKEN=${MP_ACCESS_TOKEN}
       - MP_DEFAULT_PAYER_ID=${MP_DEFAULT_PAYER_ID}
