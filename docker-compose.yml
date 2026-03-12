@@ -52,8 +52,18 @@ services:
       - "1880:1880"
     networks:
       - openit_network
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - MQTT_USER=${MQTT_USER}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:1880"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:1880"]
       interval: 10s
       timeout: 5s
       retries: 10

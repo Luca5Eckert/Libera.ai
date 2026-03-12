@@ -21,6 +21,37 @@ services:
     networks:
       - openit_network
 
+  nodered:
+    build:
+      context: ./nodered
+      dockerfile: Dockerfile
+    container_name: openit-nodered
+    restart: unless-stopped
+    env_file: .env.dev
+    ports:
+      - "1880:1880"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - MQTT_USER=${MQTT_USER}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+    networks:
+      - openit_network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:1880"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+
   api:
     build:
       context: ./back
@@ -36,14 +67,16 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - NODE_HOST=${NODE_HOST}
-      - NODE_PORT=${NODE_RED_PORT}
+      - NODE_HOST=nodered
+      - NODE_PORT=1880
       - WEBHOOK_URL=${WEBHOOK_URL}
       - MP_ACCESS_TOKEN=${MP_ACCESS_TOKEN}
       - MP_DEFAULT_PAYER_ID=${MP_DEFAULT_PAYER_ID}
       - MP_DEFAULT_PAYER_EMAIL=${MP_DEFAULT_PAYER_EMAIL}
     depends_on:
       db:
+        condition: service_healthy
+      nodered:
         condition: service_healthy
     networks:
       - openit_network
