@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b881b869-1c6c-4250-9869-6bc8bd0b8410" name="Changes" comment="fix: add treatment of error in streamPaymentStatus" />
+    <list default="true" id="b881b869-1c6c-4250-9869-6bc8bd0b8410" name="Changes" comment="fix: add treatment of error in streamPaymentStatus">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -50,7 +52,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Pichau/OneDrive/Documentos/Libera.ai&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/lucas_eckert/Downloads/libera-ai&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
 }</component>

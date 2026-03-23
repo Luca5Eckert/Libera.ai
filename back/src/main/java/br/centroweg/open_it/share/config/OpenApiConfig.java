@@ -16,7 +16,7 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("VellumHub Catalog Service API")
+                        .title("Open IT - Controlled Parking Lot API")
                         .description("""
                                 RESTful API for a controlled parking lot system. Provides endpoints for vehicle entry registration, payment processing via PIX, and real-time status monitoring. Integrates with Node-RED for hardware control and Mercado Pago for payment handling.
                                 """)
